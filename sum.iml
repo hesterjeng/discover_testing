@@ -1,0 +1,22 @@
+(* let sum n = (n + (n-1)/2);; *)
+
+let rec continuation m acc =
+  match m with
+  | 0 -> acc
+  | _ -> continuation (m-1) (acc+m) [@@no_validate];;
+
+
+let sum n =
+  if n <= 0 then 0 else continuation n 0 [@@no_validate];;
+
+let sub1 n = n-1;;
+
+let div2 n = n/2;;
+
+let geq0 x = x >= 0;;
+
+#require "imandra-discover-bridge";;
+Imandra_discover_bridge.Top.init ();;
+let funlist = ["sum";"*";"sub1";"div2";];;
+#program;;
+Imandra_discover_bridge.User_level.discover {|test|} ~num_random_checks:20i ~verbose:true ~condition:"geq0" db funlist;;

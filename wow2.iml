@@ -1,0 +1,162 @@
+type nat = Z | S of nat
+;;
+
+let zero = Z;;
+let one = S Z;;
+
+
+let rec nat_of_int x =
+  if x <= 0 then Z
+  else S (nat_of_int Int.(x-1))
+;;
+
+let rec plus x y =
+  match x with
+  | Z -> y
+  | S n -> S (plus n y)
+;;
+
+let plus_one x = plus x one;;
+
+let rec times x y =
+  match x with
+  | Z -> Z
+  | S n -> plus y (times n y)
+;;
+
+let rec lessp x y =
+  match x, y with
+  | _, Z -> false
+  | Z, _ -> true
+  | S n, S m -> lessp n m [@@adm x,y]
+;;
+
+(* 167 *)
+let rec difference x y =
+  match x,y with
+  | Z, _     -> Z
+  | _, Z     -> x
+  | S n, S m -> difference n m [@@adm x,y]
+;;
+
+(* We validate definitions using ordinals up to epsilon_zero.
+   Let's build a 'bridge' between `nat` and `Ordinal.t`. *)
+
+let rec nat_to_int x =
+  match x with
+  | Z -> 0
+  | S n -> Int.(1 + (nat_to_int n))
+[@@adm x]
+;;
+
+let nat_to_ordinal x = Ordinal.of_int (nat_to_int x)
+;;
+
+lemma nat_to_int_psd x =
+  (nat_to_int x) [@trigger] >= 0
+[@@auto] [@@fc] [@@rw]
+;;
+
+(* Now, back to your regularly scheduled ACL programming. *)
+
+(* These next three lemmas aren't necssary, but they
+   are useful for single-induction termination proofs! *)
+
+lemma nat_to_int_psd' x =
+  0 <= nat_to_int x
+[@@auto] [@@rw]
+;;
+
+lemma nat_to_int_zero x =
+  (nat_to_int x = 0) = (x = Z)
+[@@auto] [@@rw]
+;;
+
+lemma nat_to_int_zero_leq x =
+  (nat_to_int x <= 0) = (x = Z)
+[@@auto] [@@rw]
+;;
+
+lemma nat_lessp x y =
+  (lessp x y) [@trigger] ==> Int.(nat_to_int x < nat_to_int y)
+[@@auto] [@@fc]
+;;
+
+(* 171 *)
+(* let rec quotient i j = *)
+(*   if j = Z then Z *)
+(*   else if lessp i j then Z *)
+(*   else S (quotient (difference i j) j) *)
+(* [@@measure nat_to_ordinal i] *)
+(* [@@validate_induct] *)
+(* ;; *)
+
+(* 172 *)
+let rec remainder i j =
+  if j = Z then i
+  else if lessp i j then i
+  else remainder (difference i j) j
+[@@measure nat_to_ordinal i]
+[@@validate_induct]
+;;
+
+(* let rec rq_induct x y = *)
+(*   match x,y with *)
+(*   | Z, _ *)
+(*   | _, Z -> true *)
+(*   | x,y -> rq_induct (difference x y) y *)
+(* [@@validate_induct] *)
+(* ;; *)
+
+let pair_measure x y =
+  Ordinal.of_list [nat_to_ordinal x; nat_to_ordinal y]
+
+let rec gcd x y =
+  if x = Z then y
+  else if y = Z then x
+  else if lessp x y then
+    gcd x (difference y x)
+  else
+    gcd (difference x y) y
+  [@@measure pair_measure x y]
+  [@@validate_induct]
+;;
+
+(* 211 *)
+let divides x y =
+  remainder y x = Z
+;;
+
+let sub1 x = match x with
+  | Z -> Z
+  | S n -> n
+;;
+
+let rec prime1 x y =
+  if y = Z then false
+  else if y = S Z then
+    true
+  else
+    (not (divides y x)) && (prime1 x (sub1 y))
+;;
+
+
+let prime x =
+  x <> Z && x <> S Z && prime1 x (sub1 x)
+;;
+
+let lesseqp x y = x = y || lessp x y;;
+
+let rec a n m = if lesseqp n Z then m else plus (a (sub1 n) m) (gcd (a (sub1 n) m) (difference m n));;
+
+let b n = a (sub1 n) n;;
+
+let my_condition x = lessp (S Z) x;;
+
+#require "imandra-discover-bridge";;
+Imandra_discover_bridge.Top.init ();;
+let funlist = ["zero";"one";"plus_one";"sub1";"b";"a";];;
+#program;;
+Imandra_discover_bridge.User_level.discover {|test|} ~num_random_checks:50i ~verbose:true ~condition:"my_condition" db funlist;;
+
+(* theorem big_kahuna x = lessp (S Z) x ==> prime (b x) [@@auto];; *)
