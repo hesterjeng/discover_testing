@@ -37,4 +37,7 @@ let rec is_leaf_node a pos =
 Imandra_discover_bridge.Top.init ();;
 let funlist = [{|mirror|}; {|join|}; {|mirror_pos|};];;
 #program;;
-Imandra_discover_bridge.User_level.discover {|test|} ~num_random_checks:100 ~max_formula_size:15 ~verbose:true ~condition:"is_leaf_node" db funlist;;
+(* Imandra_discover_bridge.User_level.discover {|test|} ~num_random_checks:100 ~max_formula_size:15 ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
+(* Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_random_checks:100 ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
+Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_random_checks:100 ~verbose:true db funlist;;
+(* Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:true ~num_random_checks:100 ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
