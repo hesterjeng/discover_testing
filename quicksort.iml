@@ -12,26 +12,28 @@ let rec bigs l p = match l with
 | [] -> []
 | hd :: tl -> if hd <= p then bigs tl p else hd :: bigs tl p
 
+let tuple2 x y : ('a list*'a list) = x,y
+
 let rec partition l p = match l with
 | [] -> ([], [])
 | hd :: tl ->
   let (l1, l2) = partition tl p in
   if hd <= p then (hd :: l1, l2) else (l1, hd :: l2)
 ;;
-jjkkjj
+
 #require "imandra-discover-bridge";;
 Imandra_discover_bridge.Top.init ();;
-let funlist = [{|mirror|}; {|join|}; {|mirror_pos|};];;
-#program;;
+let funlist = [{|tuple2|};{|smalls|}; {|bigs|}; {|partition|};];;
+(* #program;; *)
 (* Imandra_discover_bridge.User_level.discover {|test|} ~num_random_checks:100 ~max_formula_size:15 ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
 (* Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_random_checks:100 ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
-Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_random_checks:100 ~verbose:true db funlist;;
+Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_random_checks:100i ~verbose:true db funlist;;
 
-theorem partition_smalls_bigs l p = partition l p = (smalls l p, bigs l p) [@@induct] [@@rewrite]
-;;
+(* theorem partition_smalls_bigs l p = partition l p = (smalls l p, bigs l p) [@@induct] [@@rewrite] *)
+(* ;; *)
 
-let quicksort_measure l = Ordinal.of_int (List.length l)
-;;
+(* let quicksort_measure l = Ordinal.of_int (List.length l) *)
+(* ;; *)
 
 (* theorem smalls_length l p =
      List.length (smalls l p) [@trigger] <= List.length l

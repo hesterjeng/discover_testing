@@ -16,3 +16,24 @@ type trec =
 type ttruple = mr1*mr2*mr3;;
 
 type talist = ttruple list;;
+
+type trub = int*int;;
+type trub2 = A of trub;;
+
+type kind = Granny_smith | Red_delicious | Fuji;;
+
+type apple = { kind: kind;}
+
+type apple0 = {is_ripe:bool;}
+
+type apple2 = { kind: kind;
+               is_ripe: bool }
+
+type apple3 = { kind: kind;
+               mass: Q.t;
+               days_old: Z.t;}
+
+type apple4 = { kind: kind;
+               mass: Q.t;
+               days_old: Z.t;
+               is_ripe: bool }
