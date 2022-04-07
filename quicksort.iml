@@ -21,15 +21,20 @@ let rec partition l p = match l with
   if hd <= p then (hd :: l1, l2) else (l1, hd :: l2)
 ;;
 
+let rec subset l1 l2 = match l1 with
+| [] -> true
+| hd :: tl -> List.mem hd l2 && subset tl l2
+;;
+
 #require "imandra-discover-bridge";;
 Imandra_discover_bridge.Top.init ();;
 let funlist = [{|tuple2|};{|smalls|}; {|bigs|}; {|partition|};];;
 (* #program;; *)
 (* Imandra_discover_bridge.User_level.discover {|test|} ~num_random_checks:100 ~max_formula_size:15 ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
 (* Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_random_checks:100 ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
-Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_random_checks:100i ~verbose:true db funlist;;
+Imandra_discover_bridge.User_level.discover {|test|} ~subsumed:true ~kb_completion:false ~num_random_checks:100i ~verbose:true db funlist;;
 
-(* theorem partition_smalls_bigs l p = partition l p = (smalls l p, bigs l p) [@@induct] [@@rewrite] *)
+(* theorem partition_smalls_bigs l p = partition l p = (smalls l p, bigs l p) [@@induct] [@@rewrite] got it *)
 (* ;; *)
 
 (* let quicksort_measure l = Ordinal.of_int (List.length l) *)
@@ -38,12 +43,12 @@ Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_r
 (* theorem smalls_length l p =
      List.length (smalls l p) [@trigger] <= List.length l
    [@@induct] [@@forward_chaining]
-   ;;
+   ;;  got it*)
 
-      theorem bigs_length l p =
-        List.length (bigs l p) [@trigger] <= List.length l
-      [@@induct] [@@forward_chaining]
-      ;; *)
+      (* theorem bigs_length l p =
+           List.length (bigs l p) [@trigger] <= List.length l
+         [@@induct] [@@forward_chaining]
+         ;; got it *)
 
 (* let rec quicksort l = match l with
    | [] -> []
@@ -51,12 +56,8 @@ Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_r
      let (l1, l2) = (smalls tl hd, bigs tl hd) (\* partition tl hd *\) in
      quicksort l1 @ (hd :: quicksort l2)
      [@@ measure quicksort_measure l]
-   ;;
-
-   let rec subset l1 l2 = match l1 with
-   | [] -> true
-   | hd :: tl -> List.mem hd l2 && subset tl l2
    ;; *)
+
 
 (* theorem subset_cons a l1 l2 =
      subset l1 l2 ==> (subset l1 (a :: l2) [@trigger]) [@@induct] [@@forward_chaining]

@@ -2,8 +2,6 @@ type bintree = Final_node of int | Node of int * bintree * bintree;;
 
 type direct = Left | Right;;
 
-(* type position = direct list;; *)
-
 let rec join (a:bintree) (b:bintree) (pos: direct list): bintree =
   match a,pos with
   | Final_node _ ,[] -> b
@@ -41,10 +39,10 @@ let size_is_one x = if size x = 1 then true else false;;
 
 #require "imandra-discover-bridge";;
 Imandra_discover_bridge.Top.init ();;
-let funlist = [{|mirror|}; {|join|}; {|mirror_pos|};];;
-(* #program;; *)
+let funlist = [{|mirror|}; {|join|}; {|mirror_pos|};{|is_leaf_node|}];;
+
 (* Imandra_discover_bridge.User_level.discover {|default_condition|} ~num_random_checks:100i ~max_formula_size:15i ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
-(* Imandra_discover_bridge.User_level.discover {|no_kb_condition|} ~kb_completion:false ~num_random_checks:100i ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
-Imandra_discover_bridge.User_level.discover {|no_kb_size_one|} ~kb_completion:false ~condition:"size_is_one" ~num_random_checks:1000i ~verbose:true db funlist;;
-(* Imandra_discover_bridge.User_level.discover {|no_kb_no_condition|} ~kb_completion:false ~num_random_checks:1000i ~verbose:true db funlist;; *)
+(* Imandra_discover_bridge.User_level.discover {|no_kb_condition|} ~kb_completion:true ~num_random_checks:100i ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
+(* Imandra_discover_bridge.User_level.discover {|no_kb_size_one|} ~kb_completion:false ~condition:"size_is_one" ~num_random_checks:1000i ~verbose:true db funlist;; *)
+Imandra_discover_bridge.User_level.discover {|no_kb_no_condition|} ~subsumed:true ~kb_completion:false ~num_random_checks:1000i ~verbose:true db funlist;;
 (* Imandra_discover_bridge.User_level.discover {|kb_no_condition|} ~kb_completion:true ~num_random_checks:1000i ~verbose:true db funlist;; *)

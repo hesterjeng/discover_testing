@@ -1,0 +1,14 @@
+
+let rec subset l1 l2 = match l1 with
+| [] -> true
+| hd :: tl -> List.mem hd l2 && subset tl l2
+;;
+
+let l1_subset_l2 l1 l2 = subset l1 l2;;
+
+#require "imandra-discover-bridge";;
+Imandra_discover_bridge.Top.init ();;
+let funlist = [{|true|};{|List.cons|}; {|subset|};];;
+
+Imandra_discover_bridge.User_level.discover {|test|} ~subsumed:true ~kb_completion:false ~num_random_checks:100i ~verbose:true db funlist;;
+(* Imandra_discover_bridge.User_level.discover {|test|} ~condition:"l1_subset_l2" ~subsumed:true ~kb_completion:false ~num_random_checks:100i ~verbose:true db funlist;; *)
