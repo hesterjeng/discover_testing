@@ -1,0 +1,304 @@
+(* Some nontrivial number theory from scratch in Imandra!
+
+   Working up to a proof of the Fundamental Theorem of Arithmetic,
+   all using `nat`. *)
+
+type nat = Zero | Succ of nat
+
+let rec (++) x y =
+  match x with
+  | Zero -> y
+  | Succ n -> Succ (n ++ y)
+;;
+
+lemma add_assoc x y z =
+  x ++ (y ++ z) = (x ++ y) ++ z
+[@@auto] [@@rw]
+;;
+
+lemma add_commute x y =
+  (x ++ y) [@trigger] = y ++ x
+[@@auto] [@@fc]
+;;
+
+let rec ( ** ) x y =
+  match x with
+  | Zero -> Zero
+  | Succ Zero -> y
+  | Succ n -> y ++ (n ** y)
+;;
+
+lemma add_zero x =
+  x ++ Zero = x
+[@@auto] [@@rw]
+;;
+
+lemma mult_zero x =
+  x ** Zero = Zero
+[@@auto] [@@rw]
+;;
+
+lemma mult_one x =
+  x ** (Succ Zero) = x
+[@@auto] [@@rw]
+;;
+
+lemma succ_plus_left x y =
+  x ++ (Succ y) = Succ (x ++ y)
+[@@auto] [@@rw]
+;;
+
+lemma mult_distrib_1 x y =
+  x ** (Succ y) = (x ** y) ++ x
+[@@auto] [@@rw]
+;;
+
+lemma mult_commute x y =
+  x ** y = y ** x
+[@@auto] [@@fc]
+;;
+
+(* Note: We want `++` on the left here! *)
+
+lemma mult_distrib x y z =
+  (x ++ y) ** z = (x ** z) ++ (y ** z)
+[@@auto] [@@rw]
+;;
+
+lemma mult_assoc x y z =
+  x ** (y ** z) = (x ** y) ** z
+[@@auto] [@@rw]
+;;
+
+(* An alternative version of `mult_distrib` *)
+
+lemma mult_distrib_right x y z =
+  z ** (x ++ y) = (x ** z) ++ (y ** z)
+[@@apply mult_commute z (x ++ y)]
+[@@auto]
+[@@rw]
+;;
+
+let rec ( <<| ) x y =
+  match x, y with
+  | _, Zero -> false
+  | Zero, _ -> true
+  | Succ n, Succ m -> n <<| m
+;;
+
+(* Needs scheme merging to prove trans with auto *)
+
+lemma less_trans x y z =
+ x <<| y && y <<| z ==> x <<| z
+ [@@auto] [@@fc];;
+
+(* More arithmetic! *)
+
+let rec odd x =
+  match x with
+  | Zero -> false
+  | Succ Zero -> true
+  | Succ (Succ x) -> odd x
+;;
+
+let even_1 x =
+  match x with
+  | Zero -> true
+  | Succ n -> odd n
+;;
+
+let rec even_2 x =
+  match x with
+  | Zero -> true
+  | Succ Zero -> false
+  | Succ (Succ x) -> even_2 x
+;;
+
+let rec double i =
+  match i with
+  | Zero -> Zero
+  | Succ n -> Succ (Succ (double n))
+;;
+
+lemma even_double x =
+  even_1 (double x)
+[@@auto]
+;;
+
+let rec half x =
+  match x with
+  | Zero -> Zero
+  | Succ Zero -> Zero
+  | Succ (Succ x) -> Succ (half x)
+;;
+
+lemma half_double x =
+  half (double x) = x
+[@@auto]
+;;
+
+lemma double_half x =
+  even_1 x ==> double (half x) = x
+[@@auto]
+;;
+
+lemma double_times_two x =
+  double x = x ** Succ(Succ(Zero))
+[@@auto]
+;;
+
+let rec exp i j =
+  match j with
+  | Zero -> Succ Zero
+  | Succ n -> i ** (exp i n)
+;;
+
+lemma exp_plus i j k =
+  exp i (j ++ k) = (exp i j) ** (exp i k)
+[@@auto] [@@rw]
+;;
+
+(* Note: scheme scoring selects `**` instead of `exp`! *)
+lemma exp_times i j k =
+  exp i (j ** k) = exp (exp i j) k
+[@@induct functional exp] [@@rw]
+;;
+
+lemma even1_even2 x =
+  even_1 x = even_2 x
+[@@auto];;
+
+let rec (---) x y =
+  match x,y with
+  | Zero, _ -> Zero
+  | _, Zero -> x
+  | Succ n, Succ m ->
+    n --- m
+;;
+
+lemma i_lt_zero x =
+ not (x <<| x)
+[@@auto] [@@rw]
+;;
+
+lemma i_lt_succ x y =
+ x <<| y ==> x <<| Succ y [@@auto] [@@rw];;
+
+(* Has abandoned generalization - we should clear! *)
+lemma diff_decreases i n =
+  (((i --- n) [@trigger]) <<| i) = (i <> Zero && n <> Zero)
+[@@induct functional (---)] [@@fc]
+;;
+
+let rec nat_to_int x =
+  match x with
+  | Zero -> 0
+  | Succ n -> 1 + (nat_to_int n)
+;;
+
+let nat_to_ordinal x = Ordinal.of_int (nat_to_int x)
+;;
+
+lemma nat_to_int_psd x =
+ nat_to_int x >= 0
+ [@@auto] [@@fc]
+;;
+
+lemma nat_lessp x y =
+ (x <<| y) [@trigger] ==> nat_to_int x < nat_to_int y
+ [@@auto] [@@fc]
+;;
+
+let rec (//) i j =
+  if j = Zero then Zero
+  else if i <<| j then Zero
+  else Succ ((i --- j) // j)
+[@@measure nat_to_ordinal i]
+[@@validate_induct]
+;;
+
+let rec remainder i j =
+  if j = Zero then i
+  else if i <<| j then i
+  else remainder (i --- j) j
+[@@measure nat_to_ordinal i]
+[@@validate_induct]
+;;
+
+lemma rem_quot x y =
+ (remainder x y) ++ (y ** (x // y)) = x
+ [@@auto] [@@rw]
+;;
+
+lemma lessp_diff_1 x y =
+  not (x <<| (x --- y))
+[@@auto] [@@rw]
+;;
+
+lemma remainder_one x =
+  remainder x (Succ Zero) = Zero
+[@@auto] [@@rw]
+;;
+
+lemma lessp_remainder_2 x y =
+  (remainder x y <<| y) = (y <> Zero)
+[@@auto] [@@rw]
+;;
+
+lemma lessp_difference x y =
+  not (y <<| x)
+  ==>
+  x --- y = Zero
+[@@auto] [@@rw]
+;;
+
+lemma remainder_zero x =
+  remainder x x = Zero
+[@@auto] [@@rw]
+;;
+
+(* A good elimination rule for when we support user-extended
+   destructor elimination. *)
+
+lemma remainder_quotient_elim x y =
+  y <> Zero ==>
+(remainder x y) ++ (y ** (x // y)) = x
+[@@auto] [@@rw] [@@fc]
+;;
+
+lemma plus_eq_zero x y =
+  (x ++ y = Zero) = (x = Zero && y = Zero)
+[@@auto] [@@rw]
+;;
+
+lemma plus_cancellation_1 x y =
+  (x ++ y = x) = (y = Zero)
+[@@auto] [@@rw]
+;;
+
+lemma lessp_plus_times x j z =
+  z <> Zero && j <> Zero
+  ==>
+  x <<| (z ++ (j ** x))
+[@@auto] [@@rw]
+;;
+
+lemma quot_one i =
+ (i // Succ Zero) = i
+[@@auto] [@@rw]
+;;
+
+(* I AM HERE (~189) *)
+(*
+lemma lessp_quot i j =
+i <> Zero && j <> Succ Zero
+ ==>
+(i // j) <<| i
+[@@auto] [@@rw] [@@fc]
+;;
+
+lemma lessp_quotient_1 i j =
+  ((i // j) <<| i) <== (i <> Zero && (j = Zero || j <> Succ Zero))
+[@@auto] [@@rw]
+;;
+*)
