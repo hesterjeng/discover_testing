@@ -1,0 +1,626 @@
+
+#require "imandra-discover-bridge";;
+Imandra_discover_bridge.Top.init ();;
+
+#backchain_limit 3;;
+#induct_unroll 8;;
+
+type nat = Z | S of nat
+;;
+
+(* Dummy functions for use by Discover.  These are necessary to feed some
+ * functions to Discover.  It is advisable to replace occurrences of them
+ * with the real functions before attempting to prove them. *)
+
+(* We cannot yet express terms involving constructors like S in Discover *)
+let succ_nat (x:nat) = S x;;
+(* (=) is polymorphic, so instantiated with int.  We are interested in it for the
+ * nat or bool case, so need a special equality for it. *)
+let equal_nat (x:nat) (y:nat) = x = y;;
+let neq_nat (x:nat) (y:nat) = x <> y;;
+let equal_bool (x:bool) (y:bool) = x = y;;
+
+let rec plus x y =
+  match x with
+  | Z -> y
+  | S n -> S (plus n y)
+;;
+
+(* 10 *)
+(* # discover db ~annotations:false ["Z";"true";"lessp";"plus"];; *)
+lemma discover__00 x0 = (plus Z x0) = x0 [@@rewrite]  [@@auto];;
+
+(* 11 *)
+(* # discover db ~annotations:false ["succ_nat";"plus"];; *)
+(* lemma discover__21 x0 x1 = (plus x0 (succ_nat x1)) = (succ_nat (plus x0 x1)) [@@rewrite]  [@@auto];;
+   lemma discover__32 x0 x1 = (plus (succ_nat x0) x1) = (succ_nat (plus x0 x1)) [@@rewrite]  [@@auto];; *)
+lemma discover__21 x0 x1 = (plus x0 (S x1)) = (S (plus x0 x1)) [@@rewrite]  [@@auto];;
+lemma discover__32 x0 x1 = (plus (S x0) x1) = (S (plus x0 x1)) [@@rewrite]  [@@auto];;
+
+(* 12 *)
+lemma discover__23 x0 x2 x3 = (plus x2 (plus x0 x3)) = (plus x0 (plus x2 x3)) [@@rewrite] [@@permutative] [@@auto];;
+
+(* 13 *)
+lemma discover__14 x0 x2 = (plus x2 x0) = (plus x0 x2) [@@rewrite] [@@permutative] [@@auto];;
+
+(* 14 *)
+lemma discover__35 x0 x2 x3 = (plus (plus x0 x2) x3) = (plus x0 (plus x2 x3)) [@@rewrite]  [@@auto];;
+
+let rec times x y =
+  match x with
+  | Z -> Z
+  | S n -> plus y (times n y)
+;;
+
+(* 15 *)
+(* # discover db ["Z";"succ_nat"C;"times";"plus";];; *)
+
+lemma discover__16 x0 = (times Z x0) = Z [@@rewrite]  [@@auto];;
+
+
+(* 16 - needs max_induct=2; should clear gen CX *)
+lemma discover__97 x0 x1 x2 = (times (plus x0 x1) x2) = (plus (times x0 x2) (times x1 x2)) [@@rewrite]  [@@auto];;
+(* lemma discover__108 x0 x1 x2 = (times x1 (plus x0 x2)) = (plus (times x0 x1) (times x1 x2)) [@@rewrite]  [@@auto];; *)
+
+(* 17 *)
+(* lemma discover__49 x0 x1 = (times x0 (succ_nat x1)) = (plus x0 (times x0 x1)) [@@rewrite]  [@@auto];; *)
+lemma discover__49 x0 x1 = (times x0 (S x1)) = (plus x0 (times x0 x1)) [@@rewrite]  [@@auto];;
+
+(* 18 *)
+(* Changed order *)
+lemma discover__310 x0 x1 = (times x1 x0) = (times x0 x1) [@@rewrite] [@@permutative] [@@auto];;
+
+(* 19 *)
+lemma discover__611 x0 x1 x2 = (times x1 (times x0 x2)) = (times x0 (times x1 x2)) [@@rewrite] [@@permutative] [@@auto];;
+
+(* 20 *)
+lemma discover__712 x0 x1 x2 = (times (times x0 x1) x2) = (times x0 (times x1 x2)) [@@rewrite]  [@@auto];;
+
+(* 21 *)
+(* # discover db ["Z";"times";"equal_nat";"(||)"];; *)
+(* lemma discover__1313 x1 x3 = (equal_nat Z (times x1 x3)) = ((||) (equal_nat Z x1) (equal_nat Z x3)) [@@rewrite]  [@@auto];; *)
+lemma discover__1313 x1 x3 = ((times x1 x3) = Z) = ((||) ( Z = x1) (Z = x3)) [@@rewrite]  [@@auto];;
+
+let rec lessp x y =
+  match x, y with
+  | _, Z -> false
+  | Z, _ -> true
+  | S n, S m -> lessp n m
+;;
+
+(* 37 *)
+(* let cond_37 x y = x = succ_nat y;; *)
+ (* discover db ~condition:"cond_37" ["true";"lessp"];; *)
+(* lemma discover__0 x1 x2 = (x_equal_sy x1 x2) ==> (lessp x2 x1) = true   [@@auto] *)
+lemma discover__014 x1 x2 = (x1 = S x2) ==> (lessp x2 x1) = true  [@@rw] [@@auto];;
+(* Not sure what the Z case even means... x = Z ==> true??? *)
+(* lemma sub1_lessp x =
+     match x with
+     | S y -> lessp y x
+     | Z -> true
+   [@@auto] [@@rw]
+   ;; *)
+
+(* A variant of 37 *)
+(* # discover db ["true";"succ_nat";"lessp"];; *)
+(* lemma discover__0 x1 = (lessp x1 (succ_nat x1)) = true [@@rewrite]  [@@auto] *)
+lemma discover__015 x1 = (lessp x1 (S x1)) [@@rewrite]  [@@auto];;
+(* lemma sub1_lessp_variant x =
+     lessp x (S x)
+   [@@auto] [@@rw]
+   ;; *)
+
+(* 38 *)
+(* # let cond_38 x0 x1 x2 = (lessp x0 x1) && (lessp x1 x2);;
+   discover db ~verbose:true ~extra_instances:true ~rewrite_bound_terms:false ~condition:"cond_38" ["true";"lessp"];; *)
+(* Needed extra instances AND disable rewriting bound terms *)
+(* lemma discover__1 x3 x4 x5 = (cond_38 x3 x4 x5) ==> (lessp x3 x5) = true   [@@auto] *)
+lemma discover_inst_1 x3 x4 x5 = (lessp x3 x4) [@trigger rw] && (lessp x4 x5) ==> (lessp x3 x5)   [@@auto] [@@rewrite];;
+(* lemma transitivity_of_lessp x y z =
+     (lessp x y) [@trigger rw] && (lessp y z) [@trigger rw] ==> lessp x z
+   [@@auto] [@@rw] *)
+;;
+
+(* 39 *)
+(* needed extra instances *)
+(* let cond_39 x0 x1 x2 = not (lessp x1 x2) && (lessp x0 x1);;
+   discover db ~verbose:true ~extra_instances:true ~condition:"cond_39" ["false";"lessp"];; *)
+(* lemma discover__0 x3 x4 x5 = (cond_39 x3 x4 x5) ==> (lessp x4 x5) = false   [@@auto] *)
+lemma discover_inst_2 x3 x4 x5 = not (lessp x3 x5) && ((lessp x3 x4) [@trigger rw]) ==> not (lessp x4 x5)   [@@auto] [@@rewrite];;
+(* lemma transitivity_of_lessp2 x y z =
+     not (lessp x z) && ((lessp x y) [@trigger rw])
+      ==>
+     not (lessp y z)
+   [@@auto] [@@rw]
+   ;; *)
+
+(* 40 *)
+(* Needed extra instances AND disable rewriting bound terms *)
+(* let cond_40 x0 x1 x2 = (lessp x1 x2)  && (lessp x0 x1);; *)
+(* # discover db ~verbose:true ~extra_instances:true ~condition:"cond_40" ["true";"lessp"];; *)
+(* lemma discover__1 x3 x4 x5 = (cond_40 x3 x4 x5) ==> (lessp x3 x5) = true   [@@auto] *)
+lemma discover_inst_3 x3 x4 x5 = (lessp x4 x5) [@trigger rw] && (lessp x3 x4) [@trigger rw] ==> (lessp x3 x5)   [@@auto] [@@rewrite];;
+(* lemma transitivity_of_lessp3 x y z =
+     (lessp y z) [@trigger rw] && (lessp x y) [@trigger rw]
+      ==>
+     lessp x z
+   [@@auto] [@@rw]
+   ;; *)
+
+(* 41 *)
+(* let cond_41 x0 x1 x2 = (lessp x0 x2) && not (lessp x1 x2) ;; *)
+(* discover db ~condition:"cond_41" ["true";"lessp"];; *)
+(* lemma discover__0 x1 x2 x3 = (tnc x1 x2 x3) ==> (lessp x1 x2) = true   [@@auto] *)
+(* lemma discover__016 x1 x2 x3 = (lessp x1 x3) && not (lessp x2 x3) ==> (lessp x1 x2) [@@auto];; *)
+lemma discover__016 x1 x2 x3 = (lessp x1 x3) [@trigger rw] && not (lessp x2 x3) ==> lessp x1 x2 [@@rewrite] [@@auto];;
+
+(* 42 *)
+(* fixed by extra instances *)
+(* let cond_42 x0 x1 x2 = (lessp x0 x2) && not (lessp x0 x1) ;; *)
+(* discover db ~verbose:true ~extra_instances:true ~condition:"cond_42" ["true";"lessp"];; *)
+(* lemma discover__0 x3 x4 x5 = (cond_42 x3 x4 x5) ==> (lessp x4 x5) = true   [@@auto] *)
+lemma discover_inst_317 x3 x4 x5 = (lessp x3 x5 [@trigger rw] && not (lessp x3 x4)) ==> (lessp x4 x5)   [@@auto] [@@rewrite];;
+(* lemma transitivity_of_not_lessp2 x y z =
+     (lessp x z) [@trigger rw] && not (lessp x y)
+      ==>
+     lessp y z
+   [@@auto] [@@rw]
+   ;; *)
+
+(* 43 *)
+(* lemma discover__3 x3 x4 x5 = (cond_43 x3 x4 x5) ==> (lessp x3 x5) = false   [@@auto] *)
+(* let cond_43 x0 x1 x2 = not (lessp x1 x2) && not (lessp x0 x1);; *)
+(* # discover db ~verbose:true ~extra_instances:true ~rewrite_terms:false ~condition:"cond_43" ["false";"lessp"];; *)
+lemma discover_inst_4 x3 x4 x5 = not ((lessp x4 x5) [@trigger rw]) && not ((lessp x3 x4) [@trigger rw]) ==> not (lessp x3 x5)   [@@auto] [@@rewrite];;
+(* lemma transitivity_of_not_lessp3 x y z =
+     not ((lessp y z) [@trigger rw]) && not ((lessp x y) [@trigger rw])
+      ==>
+     not (lessp x z)
+   [@@auto] [@@rw]
+   ;; *)
+
+(* 44 *)
+(* lemma discover__0 x1 = (lessp x1 x1) = false [@@rewrite]  [@@auto] *)
+lemma discover_inst_5 x1 = (lessp x1 x1) = false [@@rewrite]  [@@auto];;
+
+(* Note: We have no need for 45 (EQP), since we're typed *)
+
+(* 46 *)
+(* let cond_46 x0 x1 = not (x0 = x1) && not (lessp x1 x0);; *)
+(* # discover db ~verbose:true ~condition:"cond_46" ["true";"lessp"];; *)
+(* lemma discover__0 x1 x2 = (tnc2 x1 x2) ==> (lessp x1 x2) = true   [@@auto] *)
+lemma discover__017 x1 x2 = not (x1 = x2) && not (lessp x2 x1) ==> (lessp x1 x2)  [@@auto];;
+
+(* 71 *)
+(* Discover didn't get this:  TODO investigate *)
+(* BUG: The corresponding schema is not being enumerated? *)
+lemma trichotomy_of_lessp x y =
+  lessp x y || x = y || lessp y x
+[@@auto]
+;;
+
+(* 75 *)
+(* # discover db ~verbose:true ["false";"plus";"lessp"];; *)
+(* We already have lessp (plus x y) x = false, so this one is in some sense subsumed *)
+lemma discover__318 x2 x0 = (lessp (plus x0 x2) x0) = (not true) [@@rewrite]  [@@auto];;
+
+(* 76 - induction hint needed likely because we only have [x] as a measured
+   subset for `lessp`! *)
+(* We already have lessp (plus x y) y = false, so this one is in some sense subsumed *)
+(* lemma discover__419 x0 x2 = (lessp (plus x0 x2) x2) = (not true) [@@rewrite]  [@@auto];; *)
+lemma discover__419 x0 x2 = (lessp (plus x0 x2) x2) = (not true) [@@induct x0,x2] [@@rewrite]  [@@auto];;
+
+(* 167 *)
+let rec difference x y =
+  match x,y with
+  | Z, _     -> Z
+  | _, Z     -> x
+  | S n, S m -> difference n m
+;;
+
+(* 168 - IND *)
+(* BUG: lessp as a condition causes pretty much everything interesting to be rewritten away to true *)
+(* In fact, this schema isn't even being enumerated?? *)
+lemma counting_up_by_1 x y =
+  lessp x y
+   ==>
+  lessp (difference y (S x))
+        (difference y x)
+[@@auto] [@@rw]
+;;
+
+(* A helper for 169: Perhaps this is because we only have a
+   single measured subset for lessp. *)
+(* let cond_169 x0 x1 = lessp x0 x1;; *)
+(* # discover db ~condition:"cond_169" ~rewrite_bound_terms:false ~verbose:true ["true";"succ_nat";"lessp"];; *)
+(* lemma discover__2 x6 x7 = (lessp x6 x7) ==> (lessp x6 (succ_nat x7)) = true   [@@auto] *)
+
+lemma discover__2 x6 x7 = (lessp x6 x7) ==> (lessp x6 (S x7)) [@@rewrite] [@@auto];;
+(* lemma lessp_stable x y =
+     lessp x y ==> lessp x (S y)
+   [@@auto] [@@rw]
+   ;; *)
+
+(* 169 - IND *)
+(* BUG: (&&) (neq_nat ? Z) (neq_nat ? Z) is rewritten and not instantiated *)
+lemma counting_down_by_n_plus_1 i n =
+  (lessp (difference i n) i) = (i <> Z && n <> Z)
+[@@auto] [@@otf] [@@rw]
+;;
+
+(* 170 - IND *)
+(* BUG: (&&) (neq_nat ? Z) (neq_nat ? Z) is rewritten and not instantiated *)
+lemma recursion_by_difference i n =
+  i <> Z && n <> Z ==> lessp (difference i n) i
+[@@auto] [@@rw]
+;;
+
+(* We validate definitions using ordinals up to epsilon_zero.
+   Let's build a 'bridge' between `nat` and `Ordinal.t`. *)
+let rec nat_to_ordinal x =
+  match x with
+  | Z -> Ordinal.zero
+  | S x -> Ordinal.simple_plus Ordinal.one (nat_to_ordinal x)
+;;
+
+(* Can't expect Discover to get these *)
+lemma nat_to_ordinal_psd x =
+  match (nat_to_ordinal x) [@trigger] with
+  | Ordinal.Int n -> n >= 0
+  | _ -> true
+  [@@auto] [@@fc]
+;;
+
+(* Can't expect Discover to get these *)
+lemma ord_relate x y =
+  Ordinal.(nat_to_ordinal x << nat_to_ordinal y)
+   = (lessp x y)
+[@@auto] [@@rw]
+;;
+
+(* Can't expect Discover to get these *)
+lemma ord_is_valid x =
+  Ordinal.is_valid ((nat_to_ordinal x) [@trigger])
+[@@auto] [@@rw] [@@fc]
+;;
+
+(* Can't expect Discover to get these *)
+lemma nat_to_ord_zero x =
+  ((nat_to_ordinal x) [@trigger] = Int 0) = (x = Z)
+[@@auto] [@@fc]
+;;
+
+(* Now, back to your regularly scheduled ACL programming. *)
+
+(* 171 *)
+let rec quotient i j =
+  if j = Z then Z
+  else if lessp i j then Z
+  else S (quotient (difference i j) j)
+[@@measure nat_to_ordinal i]
+[@@validate_induct]
+;;
+
+(* 172 *)
+let rec remainder i j =
+  if j = Z then i
+  else if lessp i j then i
+  else remainder (difference i j) j
+[@@measure nat_to_ordinal i]
+[@@validate_induct]
+;;
+
+let rec rq_induct x y =
+  match x,y with
+  | Z, _
+  | _, Z -> true
+  | x,y -> rq_induct (difference x y) y
+[@@validate_induct]
+;;
+
+(* A G-lemma: We need it currently, as we select the wrong induction (plus)! *)
+(* lemma discover__36 x0 x1 = (x_not_less_y x0 x1) ==> (plus x1 (difference x0 x1)) = x0   [@@auto] *)
+(* Interesting: This needs functional induction. *)
+(* let cond_g x0 x1 = not (lessp x0 x1) ;;
+   # discover db ~condition:"cond_g" ~kb_completion:false ~verbose:true ["plus";"difference"];; *)
+
+lemma discover__3620 x0 x1 = not (lessp x0 x1)
+    ==> (plus x1 (difference x0 x1)) = x0 [@@induct functional difference] [@@rewrite] [@@auto];;
+
+(* 175 - Note that we don't construct exactly the same toplevel induction
+         as that given by rq_induct, which we should.
+         TODO: investigate why!
+ *)
+(* BUG: Discover should be able to get this, but the LHS is quite large *)
+(* (plus (remainder ? ?) (times ? (quotient ? ?))) *)
+lemma remainder_quotient x y =
+  plus (remainder x y) (times y (quotient x y)) = x
+[@@induct functional rq_induct] [@@rw]
+;;
+
+(* 179 *)
+(* # discover db ~verbose:true ["false";"lessp";"difference"];; *)
+
+lemma discover__321 x2 x1 = (lessp x2 (difference x2 x1)) = false [@@rewrite]  [@@auto];;
+(* lemma discover__321 x2 x1 = not (lessp x2 (difference x2 x1)) [@@rewrite]  [@@auto];; *)
+
+(* 180 *)
+(* lemma discover__3 x1 = (remainder x1 (succ_nat Z)) = Z [@@rewrite]  [@@auto] *)
+(* # discover db ~verbose:true ~kb_completion:false ["Z";"succ_nat";"remainder"];; *)
+
+lemma discover__322 x1 = (remainder x1 (S Z)) = Z [@@rewrite]  [@@auto];;
+
+(* 182 - our first generalization rule in this development! *)
+(* BUG: investigate why I'm not getting this.  Disable rewriting? *)
+lemma lessp_remainder_2 x y =
+  lessp ((remainder x y) [@trigger]) y = (y <> Z)
+[@@auto] [@@rw] [@@gen]
+;;
+
+(* 183 *)
+(* BUG: investigate why I'm not getting this.  Disable rewriting? *)
+lemma lessp_difference x y =
+  not (lessp y x) ==> (difference x y = Z)
+[@@auto] [@@rw]
+;;
+
+(* 184 *)
+lemma discover__223 x1 = (remainder x1 x1) = Z [@@rewrite]  [@@auto];;
+
+(* 185 - our first elimination rule in this development! *)
+(* Not attmempting this as we couldn't get 175  *)
+lemma remainder_quotient_elim x y =
+  y <> Z
+  ==>
+  plus (remainder x y) (times y (quotient x y)) = x
+[@@auto] [@@elim]
+;;
+
+(* 186 *)
+(* discover db ~verbose:true ~iterations:3i ["(&&)";"Z";"plus";"equal_nat";];; *)
+(* lemma discover__27624 x1 x2 = ((&&) (equal_nat x1 Z) (equal_nat x2 Z)) = (equal_nat Z (plus x1 x2)) [@@rewrite]  [@@auto];; *)
+lemma discover__27624 x1 x2 = (plus x1 x2 = Z) = ((x1 = Z) && (x2 = Z)) [@@rewrite]  [@@auto];;
+
+(* 187 *)
+(* lemma discover__1025 x2 x1 = (equal_nat x2 (plus x1 (plus x1 x2))) = (equal_nat Z x1) [@@rewrite]  [@@auto];; *)
+(* lemma discover__1025 x2 x1 = ((plus x1 (plus x1 x2)) = x2) = (x1 = Z) [@@rewrite]  [@@auto];; *)
+lemma discover__1025 x2 x1 = ((plus x1 x2) = x1) = (x2 = Z) [@@rewrite]  [@@auto];;
+
+(* 188 *)
+(* Pretty deep nesting on this one... *)
+(* lemma discover__8 x3 x1 x2 = (cond_188 x1 x2) ==> (lessp x3 (plus x2 (times x1 x3))) = true   [@@auto];; *)
+lemma discover__826 x3 x1 x2 = x1 <> Z && x2 <> Z ==> (lessp x3 (plus x2 (times x1 x3))) [@@rewrite]  [@@auto];;
+
+(* 189 *)
+(* Pretty deep nesting on this one... Deep as 188. *)
+(* BUG: Not going to try this one because of size *)
+lemma lessp_quotient1 i j =
+  lessp (quotient i j) i = (i <> Z && (j = Z || j <> S Z))
+[@@auto] [@@rw] [@@otf]
+;;
+
+(* 190 - without the hint, we try to induct following lessp *)
+(* BUG: Not going to try this one because of size *)
+lemma lessp_remainder1 x y =
+  lessp (remainder x y) x = (y <> Z && x <> Z && not (lessp x y))
+[@@induct functional remainder] [@@rw]
+;;
+
+(* 191 *)
+(* let cond_191 i j = i <> Z && j <> Z && j <> S Z;; *)
+(*  (lessp (quotient ? ?) ?) isn't finding a ovi match *)
+(* BUG: Can't get this one because the one variable instance of the schema is false if 0 or 1 is chosen. *)
+lemma recursion_by_quotient i j =
+  i <> Z && j <> Z && j <> S Z
+  ==>
+    lessp (quotient i j) i
+[@@auto] [@@rw]
+;;
+
+(* 196 - gcd *)
+(* We need to do a little work for proving termination *)
+let pair_measure x y =
+  Ordinal.pair
+    (Ordinal.simple_plus (nat_to_ordinal x) Ordinal.one)
+    (Ordinal.simple_plus (nat_to_ordinal y) Ordinal.one)
+;;
+
+(* On defining discover type (dummies) *)
+(* BUG: Imandra_reasoning.Extract.Extend.No_extender_defined("Ordinal.t") *)
+lemma pair_measure_valid x y =
+  Ordinal.is_valid (pair_measure x y)
+[@@auto] [@@rw]
+;;
+
+(* On defining discover type (dummies) *)
+(* BUG: Imandra_reasoning.Extract.Extend.No_extender_defined("Ordinal.t") *)
+lemma nat_to_ordinal_injective x y =
+  (nat_to_ordinal x = nat_to_ordinal y) = (x = y)
+[@@induct x,y] [@@rw]
+;;
+
+(* On defining discover type (dummies) *)
+(* BUG: Imandra_reasoning.Extract.Extend.No_extender_defined("Ordinal.t") *)
+lemma lessp_nat_to_ordinal x y =
+  lessp x y ==> not(nat_to_ordinal x = nat_to_ordinal y)
+[@@auto] [@@rw]
+;;
+
+#disable Ordinal.is_valid;;
+
+(* On defining discover type (dummies) *)
+(* BUG: Imandra_reasoning.Extract.Extend.No_extender_defined("Ordinal.t") *)
+lemma elim_pair_measure x y z w =
+  Ordinal.(pair_measure x y << pair_measure z w)
+  = (lessp x z || (x = z && lessp y w))
+[@@auto] [@@otf] [@@rw]
+;;
+
+(* TODO: make define_check take disables into account! *)
+#disable pair_measure;;
+
+let rec gcd x y =
+  if x = Z then y
+  else if y = Z then x
+  else if lessp x y then
+    gcd x (difference y x)
+  else
+    gcd (difference x y) y
+  [@@measure pair_measure x y]
+  [@@validate_induct]
+;;
+
+(* 197 *)
+(* lemma discover__0 x1 x2 = (not_lessp_y_x x1 x2) ==> (lessp x1 x2) = false   [@@auto] *)
+lemma discover__027 x1 x2 = lessp x2 x1 ==> not (lessp x1 x2)  [@@auto] [@@rewrite];;
+
+(* 198 *)
+lemma discover__128 x0 x1 = (gcd x1 x0) = (gcd x0 x1) [@@rewrite] [@@permutative] [@@auto];;
+
+(* 202 *)
+(* needed rewrite_bound_terms=false *)
+(* lemma discover__5 x3 x4 = (cond_202 x3 x4) ==> (lessp (remainder x3 x4) x3) = true   [@@auto] *)
+lemma discover_inst_2025 x3 x4 = x4 <> Z && lessp x4 x3 ==> (lessp (remainder x3 x4) x3)  [@@auto] [@@rewrite];;
+(* lemma recursion_by_remainder x y =
+     y <> Z && lessp y x ==> lessp (remainder x y) x
+   [@@auto] [@@rw] *)
+;;
+
+(* Discover got this except applied a commutativity of plus *)
+(* 208 *)
+(* lemma discover__0 x2 x1 = (difference (plus x1 x2) x2) = x1 [@@rewrite]  [@@auto];; *)
+(* lemma discover__029 x2 x1 = (difference (plus x2 x1) x2) = x1 [@@rewrite]  [@@auto];; *)
+(* What?  This one works but the above doesn't?  It's just a renaming of variables... *)
+lemma discover__029 x1 x2 = (difference (plus x1 x2) x1) = x2 [@@rewrite]  [@@auto];;
+
+(* 209 *)
+lemma discover__1330 x1 x3 x2 = (difference (plus x1 x3) (plus x1 x2)) = (difference x3 x2) [@@rewrite]  [@@auto];;
+
+(* 210 - without the hint, we induct following times *)
+(* lemma discover__18 x3 x1 x2 = (times x1 (difference x3 x2)) = (difference (times x1 x3) (times x1 x2)) [@@rewrite]  [@@auto];; *)
+lemma discover__1831 x3 x1 x2 = (difference (times x1 x3) (times x1 x2)) = (times x1 (difference x3 x2)) [@@rewrite]  [@@induct functional difference] [@@auto];;
+
+(* 211 *)
+let divides x y =
+  remainder y x = Z
+;;
+
+(* 212 *)
+lemma discover__532 x0 x2 = (remainder (times x0 x2) x2) = Z [@@rewrite]  [@@auto];;
+
+(* 213 *)
+(* Again, with 208 by renaming variables we are able to prove the discover lemma... *)
+(* lemma discover__2133 x1 x0 x2 = (difference (plus x0 (plus x1 x2)) x1) = (plus x0 x2) [@@rewrite]  [@@auto];; *)
+(* lemma discover__2133 x0 x1 x2 = (difference (plus x0 (plus x1 x2)) x1) = (plus x0 x2) [@@rewrite]  [@@auto];; *)
+lemma discover__2133 a b c = (difference (plus b (plus a c)) a) = (plus b c) [@@rewrite]  [@@auto];;
+
+   (* 214 *)
+(* BUG: Discover won't get conjectures of this form *)
+lemma equal_difference x y k =
+    (x = difference y k)
+    = (if lessp k y
+        then y = plus x k
+        else x = Z)
+[@@auto] [@@rw]
+;;
+
+   (* 215 *)
+(* lemma discover__9 x1 x0 = (difference (succ_nat (plus x0 x1)) x1) = (succ_nat x0) [@@rewrite]  [@@auto];; *)
+lemma discover__934 x1 x0 = (difference (S (plus x0 x1)) x1) = (S x0) [@@rewrite]  [@@auto];;
+
+(* 216 *)
+(* BUG: This is a 4 *)
+lemma remainder_add1 x y =
+  y <> Z && y <> S Z
+   ==>
+  remainder (S (times x y)) y <> Z
+[@@auto] [@@rw]
+;;
+
+(* 222 - we move this above 217! *)
+(* BUG: This is a 4 *)
+lemma difference_elim x y =
+    not (lessp y x) ==> (plus x (difference y x)) = y
+[@@auto] [@@elim]
+;;
+   (* 217 - I think we need DIFFERENCE-ELIM! *)
+(* BUG: This is a 4 *)
+lemma divides_plus_rewrite1 x y z =
+    remainder x z = Z && remainder y z = Z
+    ==>
+    (remainder (plus x y) z) = Z
+[@@auto] [@@rw]
+;;
+
+   (* 218 *)
+(* BUG: Did not attempt *)
+lemma divides_plus_rewrite2 x y z =
+    remainder x z = Z
+    && remainder y z <> Z
+    ==>
+    remainder (plus x y) z <> Z
+[@@induct functional remainder] [@@rw]
+;;
+
+(* 219 *)(* This is not found by Discover because the RHS is small and has unbound variables. *)
+(* This could be fixed by instantiating terms with combinations of bound and unbound variables. *)
+ (* BUG: Discover cannot get this because of lack of instantiation, and condition rewriting, also it is a 4, very difficult *)
+
+lemma divides_plus_rewrite x y z =
+  remainder x z = Z
+   ==>
+  (remainder (plus x y) z = Z) = (remainder y z = Z)
+[@@auto] [@@rw]
+;;
+
+(* 220 *)
+(* This is not found by Discover because the RHS is small and has unbound variables. *)
+(* This could be fixed by instantiating terms with combinations of bound and unbound variables. *)
+(* BUG: Discover cannot get this because of lack of instantiation, and condition rewriting, also it is a 4, very difficult *)
+
+lemma divides_plus_rewrite_commuted x y z =
+  remainder x z = Z
+   ==>
+  (remainder (plus y x) z = Z) = (remainder y z = Z)
+[@@auto] [@@rw]
+;;
+
+(* 221 *)
+(* lemma discover__1835 x1 x2 = (not (lessp x2 x1)) = (not (lessp Z (difference x1 x2))) [@@rewrite]  [@@auto];; *)
+
+lemma lessp_difference2 x y =
+  (difference x y = Z) = (not (lessp y x))
+[@@auto] [@@rw]
+;;
+
+(* 223 *)
+(* lemma discover__636 x5 x1 x2 = (lessp (plus x1 x5) (plus x2 x5)) = (lessp x1 x2) [@@rewrite]  [@@auto];; *)
+(* lemma discover__636 x y z = (lessp (plus y x) (plus z x)) = (lessp y z) [@@rewrite]  [@@auto];; *)
+lemma discover__636 x y z = (lessp (plus x y) (plus x z)) = (lessp y z) [@@rewrite]  [@@auto];;
+
+(* lemma lessp_plus_cancellation x y z =
+     lessp (plus x y) (plus x z) = lessp y z
+   [@@auto] [@@rw]
+   ;; *)
+
+(* 224 *)
+(* This follows from 223 by commutativity *)
+
+lemma lessp_plus_cancellation2 x y z =
+  lessp (plus x y) (plus z x) = lessp y z
+[@@auto] [@@rw]
+;;
+
+(* 225 *)
+(* Note: It's crucial here we apply difference_elim, rather than
+   quotient_remainder_elim! The `age' of the destructor is key. *)
+theorem euclid x y z =
+  remainder x z = Z
+  ==>
+    (remainder (difference y x) z = Z)
+     =
+    (if lessp x y then
+       (remainder y z = Z)
+     else true)
+[@@auto] [@@rw]
+;;

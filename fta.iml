@@ -1,304 +1,1236 @@
-(* Some nontrivial number theory from scratch in Imandra!
+(* Proof of the Fundamental Theorem of Arithmetic in Imandra, following Boyer-Moore 1979. *)
+(* G Passmore, AI *)
 
-   Working up to a proof of the Fundamental Theorem of Arithmetic,
-   all using `nat`. *)
+(*
+TEST_TOOLS: imandra_client
+TEST_LONG
+*)
 
-type nat = Zero | Succ of nat
+(* This is a big test! Expect it to take >= 2 mins on a reasonable machine (2019). *)
 
-let rec (++) x y =
+#backchain_limit 3;;
+#induct_unroll 8;;
+
+type nat = Z | S of nat
+;;
+
+let zero = Z;;
+
+let succ_nat (x:nat) = S x;;
+
+let rec plus x y =
   match x with
-  | Zero -> y
-  | Succ n -> Succ (n ++ y)
+  | Z -> y
+  | S n -> S (plus n y)
 ;;
 
-lemma add_assoc x y z =
-  x ++ (y ++ z) = (x ++ y) ++ z
+(* 10 *)
+(* "lemma discover__0 x0 = (plus Z x0) = x0 [@@rewrite]  [@@auto]";; *)
+lemma plus_right_id x =
+  plus x Z = x
 [@@auto] [@@rw]
 ;;
 
-lemma add_commute x y =
-  (x ++ y) [@trigger] = y ++ x
-[@@auto] [@@fc]
+(* 11 *)
+(* "lemma discover__2 x0 x1 = (plus x0 (succ_nat x1)) = (succ_nat (plus x0 x1)) [@@rewrite]  [@@auto]";;
+   "lemma discover__3 x0 x1 = (plus (succ_nat x0) x1) = (succ_nat (plus x0 x1)) [@@rewrite]  [@@auto]";; *)
+lemma plus_add_1 x y =
+  plus x (S y) = S (plus x y)
+[@@auto] [@@rw]
 ;;
 
-let rec ( ** ) x y =
+(* 12 *)
+(* lemma discover__2 x0 x2 x3 = (plus x2 (plus x0 x3)) = (plus x0 (plus x2 x3)) [@@rewrite] [@@permutative] [@@auto];; *)
+lemma commutativity_2_of_plus x y z =
+  plus x (plus y z) = plus y (plus x z)
+[@@auto] [@@rw] [@@permutative]
+;;
+
+(* 13 *)
+(* lemma discover__1 x0 x2 = (plus x2 x0) = (plus x0 x2) [@@rewrite] [@@permutative] [@@auto];; *)
+lemma commutativity_of_plus x y =
+  plus x y = plus y x
+[@@auto] [@@rw] [@@permutative]
+;;
+
+(* 14 *)
+(* lemma discover__3 x0 x2 x3 = (plus (plus x0 x2) x3) = (plus x0 (plus x2 x3)) [@@rewrite]  [@@auto];; *)
+lemma associativity_of_plus x y z =
+  plus (plus x y) z = plus x (plus y z)
+[@@auto] [@@rw]
+;;
+
+let rec times x y =
   match x with
-  | Zero -> Zero
-  | Succ Zero -> y
-  | Succ n -> y ++ (n ** y)
+  | Z -> Z
+  | S n -> plus y (times n y)
 ;;
 
-lemma add_zero x =
-  x ++ Zero = x
+(* 15 *)
+(* lemma discover__1 x0 = (times Z x0) = Z [@@rewrite]  [@@auto] *)
+lemma times_zero x =
+ times x Z = Z
 [@@auto] [@@rw]
 ;;
 
-lemma mult_zero x =
-  x ** Zero = Zero
+(* 16 - needs max_induct=2; should clear gen CX *)
+(* "lemma discover__9 x0 x1 x2 = (times (plus x0 x1) x2) = (plus (times x0 x2) (times x1 x2)) [@@rewrite]  [@@auto]";
+   "lemma discover__10 x0 x1 x2 = (times x1 (plus x0 x2)) = (plus (times x0 x1) (times x1 x2)) [@@rewrite]  [@@auto]" *)
+lemma distributivity_of_times_over_plus x y z =
+  times x (plus y z) = plus (times x y) (times x z)
 [@@auto] [@@rw]
 ;;
 
-lemma mult_one x =
-  x ** (Succ Zero) = x
+(* 17 *)
+(* "lemma discover__4 x0 x1 = (times x0 (succ_nat x1)) = (plus x0 (times x0 x1)) [@@rewrite]  [@@auto]"; *)
+lemma times_add1 x y =
+  times x (S y) = plus x (times x y)
 [@@auto] [@@rw]
 ;;
 
-lemma succ_plus_left x y =
-  x ++ (Succ y) = Succ (x ++ y)
+(* 18 *)
+(* lemma discover__3 x0 x1 = (times x1 x0) = (times x0 x1) [@@rewrite] [@@permutative] [@@auto] *)
+lemma commutativity_of_times x y =
+  times x y = times y x
+[@@auto] [@@rw] [@@permutative]
+;;
+
+(* 19 *)
+(* lemma discover__6 x0 x1 x2 = (times x1 (times x0 x2)) = (times x0 (times x1 x2)) [@@rewrite] [@@permutative] [@@auto]; *)
+lemma commutativity2_of_times x y z =
+  times x (times y z) = times y (times x z)
+[@@auto] [@@rw] [@@permutative]
+;;
+
+(* 20 *)
+(* lemma discover__7 x0 x1 x2 = (times (times x0 x1) x2) = (times x0 (times x1 x2)) [@@rewrite]  [@@auto];  *)
+lemma associativity_of_times x y z =
+  times (times x y) z = times x (times y z)
 [@@auto] [@@rw]
 ;;
 
-lemma mult_distrib_1 x y =
-  x ** (Succ y) = (x ** y) ++ x
+(* 21 *)
+(* lemma discover__13 x1 x3 = (equal_nat Z (times x1 x3)) = (or_bool (equal_nat Z x1) (equal_nat Z x3)) [@@rewrite]  [@@auto] *)
+lemma equal_times_0 x y =
+  (times x y = Z) = (x = Z || y = Z)
 [@@auto] [@@rw]
 ;;
 
-lemma mult_commute x y =
-  x ** y = y ** x
-[@@auto] [@@fc]
+let rec lessp x y =
+  match x, y with
+  | _, Z -> false
+  | Z, _ -> true
+  | S n, S m -> lessp n m
 ;;
 
-(* Note: We want `++` on the left here! *)
-
-lemma mult_distrib x y z =
-  (x ++ y) ** z = (x ** z) ++ (y ** z)
+(* 37 *)
+(* lemma discover__0 x1 x2 = (x_equal_sy x1 x2) ==> (lessp x2 x1) = true   [@@auto] *)
+(* lemma discover__0 x1 x2 = (x1 = S x2) ==> (lessp x2 x1) = true   [@@auto] *)
+(* Not sure what the Z case even means... x = Z ==> true??? *)
+lemma sub1_lessp x =
+  match x with
+  | S y -> lessp y x
+  | Z -> true
 [@@auto] [@@rw]
 ;;
 
-lemma mult_assoc x y z =
-  x ** (y ** z) = (x ** y) ** z
+(* A variant of 37 *)
+(* lemma discover__0 x1 = (lessp x1 (succ_nat x1)) = true [@@rewrite]  [@@auto] *)
+(* lemma discover__0 x1 = (lessp x1 (S x1)) [@@rewrite]  [@@auto] *)
+lemma sub1_lessp_variant x =
+  lessp x (S x)
 [@@auto] [@@rw]
 ;;
 
-(* An alternative version of `mult_distrib` *)
+(* 38 *)
+(* BUG: Discover won't get this because of instantiation *)
+lemma transitivity_of_lessp x y z =
+  (lessp x y) [@trigger rw] && (lessp y z) [@trigger rw] ==> lessp x z
+[@@auto] [@@rw]
+;;
 
-lemma mult_distrib_right x y z =
-  z ** (x ++ y) = (x ** z) ++ (y ** z)
-[@@apply mult_commute z (x ++ y)]
+(* 39 *)
+(* BUG: Discover won't get this because of instantiation *)
+lemma transitivity_of_lessp2 x y z =
+  not (lessp x z) && ((lessp x y) [@trigger rw])
+   ==>
+  not (lessp y z)
+[@@auto] [@@rw]
+;;
+
+(* 40 *)
+(* BUG: Discover won't get this because of instantiation *)
+lemma transitivity_of_lessp3 x y z =
+  (lessp y z) [@trigger rw] && (lessp x y) [@trigger rw]
+   ==>
+  lessp x z
+[@@auto] [@@rw]
+;;
+
+(* 41 *)
+(* lemma discover__0 x1 x2 x3 = (tnc x1 x2 x3) ==> (lessp x1 x2) = true   [@@auto] *)
+(* lemma discover__0 x1 x2 x3 = (lessp x z) && not (lessp y z) ==> (lessp x1 x2) [@@auto] *)
+lemma transitivity_of_not_lessp x y z =
+  (lessp x z) [@trigger rw] && not (lessp y z)
+   ==>
+  lessp x y
+[@@auto] [@@rw]
+;;
+
+(* 42 *)
+(* BUG: Discover won't get this because of instantiation *)
+lemma transitivity_of_not_lessp2 x y z =
+  (lessp x z) [@trigger rw] && not (lessp x y)
+   ==>
+  lessp y z
+[@@auto] [@@rw]
+;;
+
+(* 43 *)
+(* BUG: Discover won't get this because of instantiation *)
+lemma transitivity_of_not_lessp3 x y z =
+  not ((lessp y z) [@trigger rw]) && not ((lessp x y) [@trigger rw])
+   ==>
+  not (lessp x z)
+[@@auto] [@@rw]
+;;
+
+(* 44 *)
+(* BUG: lemma discover__0 x1 = (lessp x1 x1) = false [@@rewrite]  [@@auto] *)
+lemma lessp_not_reflexive x =
+  (lessp x x) = false
+[@@auto] [@@rw]
+;;
+
+(* Note: We have no need for 45 (EQP), since we're typed *)
+
+(* 46 *)
+(* lemma discover__0 x1 x2 = (tnc2 x1 x2) ==> (lessp x1 x2) = true   [@@auto] *)
+(* lemma discover__0 x1 x2 = not (x = y) && not (lessp y x) ==> (lessp x1 x2)  [@@auto] *)
+lemma lessp_equal x y =
+  not (x = y) && not (lessp y x) ==> lessp x y
+[@@auto] [@@rw]
+;;
+
+(* 71 *)
+(* Discover didn't get this:  TODO investigate *)
+(* BUG: The corresponding schema is not being enumerated? *)
+lemma trichotomy_of_lessp x y =
+  lessp x y || x = y || lessp y x
 [@@auto]
+;;
+
+(* 75 *)
+(* We already have lessp (plus x y) x = false, so this one is in some sense subsumed *)
+(* lemma discover__3 x2 x0 = (lessp (plus x0 x2) x0) = (not true) [@@rewrite]  [@@auto] *)
+lemma lesseqp_plus x y =
+  not (lessp (plus x y) x)
+[@@auto] [@@rw]
+;;
+
+(* 76 - induction hint needed likely because we only have [x] as a measured
+   subset for `lessp`! *)
+(* We already have lessp (plus x y) y = false, so this one is in some sense subsumed *)
+(* lemma discover__4 x0 x2 = (lessp (plus x0 x2) x2) = (not true) [@@rewrite]  [@@auto] *)
+lemma lesseqp_plus2 x y =
+  not (lessp (plus x y) y)
+[@@induct x,y]
 [@@rw]
 ;;
 
-let rec ( <<| ) x y =
-  match x, y with
-  | _, Zero -> false
-  | Zero, _ -> true
-  | Succ n, Succ m -> n <<| m
-;;
-
-(* Needs scheme merging to prove trans with auto *)
-
-lemma less_trans x y z =
- x <<| y && y <<| z ==> x <<| z
- [@@auto] [@@fc];;
-
-(* More arithmetic! *)
-
-let rec odd x =
-  match x with
-  | Zero -> false
-  | Succ Zero -> true
-  | Succ (Succ x) -> odd x
-;;
-
-let even_1 x =
-  match x with
-  | Zero -> true
-  | Succ n -> odd n
-;;
-
-let rec even_2 x =
-  match x with
-  | Zero -> true
-  | Succ Zero -> false
-  | Succ (Succ x) -> even_2 x
-;;
-
-let rec double i =
-  match i with
-  | Zero -> Zero
-  | Succ n -> Succ (Succ (double n))
-;;
-
-lemma even_double x =
-  even_1 (double x)
-[@@auto]
-;;
-
-let rec half x =
-  match x with
-  | Zero -> Zero
-  | Succ Zero -> Zero
-  | Succ (Succ x) -> Succ (half x)
-;;
-
-lemma half_double x =
-  half (double x) = x
-[@@auto]
-;;
-
-lemma double_half x =
-  even_1 x ==> double (half x) = x
-[@@auto]
-;;
-
-lemma double_times_two x =
-  double x = x ** Succ(Succ(Zero))
-[@@auto]
-;;
-
-let rec exp i j =
-  match j with
-  | Zero -> Succ Zero
-  | Succ n -> i ** (exp i n)
-;;
-
-lemma exp_plus i j k =
-  exp i (j ++ k) = (exp i j) ** (exp i k)
-[@@auto] [@@rw]
-;;
-
-(* Note: scheme scoring selects `**` instead of `exp`! *)
-lemma exp_times i j k =
-  exp i (j ** k) = exp (exp i j) k
-[@@induct functional exp] [@@rw]
-;;
-
-lemma even1_even2 x =
-  even_1 x = even_2 x
-[@@auto];;
-
-let rec (---) x y =
+(* 167 *)
+let rec difference x y =
   match x,y with
-  | Zero, _ -> Zero
-  | _, Zero -> x
-  | Succ n, Succ m ->
-    n --- m
+  | Z, _     -> Z
+  | _, Z     -> x
+  | S n, S m -> difference n m
 ;;
 
-lemma i_lt_zero x =
- not (x <<| x)
+(* 168 - IND *)
+(* BUG: lessp as a condition causes pretty much everything interesting to be rewritten away to true *)
+lemma counting_up_by_1 x y =
+  lessp x y
+   ==>
+  lessp (difference y (S x))
+        (difference y x)
 [@@auto] [@@rw]
 ;;
 
-lemma i_lt_succ x y =
- x <<| y ==> x <<| Succ y [@@auto] [@@rw];;
-
-(* Has abandoned generalization - we should clear! *)
-lemma diff_decreases i n =
-  (((i --- n) [@trigger]) <<| i) = (i <> Zero && n <> Zero)
-[@@induct functional (---)] [@@fc]
+(* A helper for 169: Perhaps this is because we only have a
+   single measured subset for lessp. *)
+(* BUG: lessp as a condition causes pretty much everything interesting to be rewritten away to true *)
+lemma lessp_stable x y =
+  lessp x y ==> lessp x (S y)
+[@@auto] [@@rw]
 ;;
 
-let rec nat_to_int x =
+(* 169 - IND *)
+(* BUG: (&&) (neq_nat ? Z) (neq_nat ? Z) is rewritten and not instantiated *)
+lemma counting_down_by_n_plus_1 i n =
+  (lessp (difference i n) i) = (i <> Z && n <> Z)
+[@@auto] [@@otf] [@@rw]
+;;
+
+(* 170 - IND *)
+(* BUG: (&&) (neq_nat ? Z) (neq_nat ? Z) is rewritten and not instantiated *)
+lemma recursion_by_difference i n =
+  i <> Z && n <> Z ==> lessp (difference i n) i
+[@@auto] [@@rw]
+;;
+
+(* We validate definitions using ordinals up to epsilon_zero.
+   Let's build a 'bridge' between `nat` and `Ordinal.t`. *)
+let rec nat_to_ordinal x =
   match x with
-  | Zero -> 0
-  | Succ n -> 1 + (nat_to_int n)
+  | Z -> Ordinal.zero
+  | S x -> Ordinal.simple_plus Ordinal.one (nat_to_ordinal x)
 ;;
 
-let nat_to_ordinal x = Ordinal.of_int (nat_to_int x)
+(* Can't expect Discover to get these *)
+lemma nat_to_ordinal_psd x =
+  match (nat_to_ordinal x) [@trigger] with
+  | Ordinal.Int n -> n >= 0
+  | _ -> true
+  [@@auto] [@@fc]
 ;;
 
-lemma nat_to_int_psd x =
- nat_to_int x >= 0
- [@@auto] [@@fc]
+(* Can't expect Discover to get these *)
+lemma ord_relate x y =
+  Ordinal.(nat_to_ordinal x << nat_to_ordinal y)
+   = (lessp x y)
+[@@auto] [@@rw]
 ;;
 
-lemma nat_lessp x y =
- (x <<| y) [@trigger] ==> nat_to_int x < nat_to_int y
- [@@auto] [@@fc]
+(* Can't expect Discover to get these *)
+lemma ord_is_valid x =
+  Ordinal.is_valid ((nat_to_ordinal x) [@trigger])
+[@@auto] [@@rw] [@@fc]
 ;;
 
-let rec (//) i j =
-  if j = Zero then Zero
-  else if i <<| j then Zero
-  else Succ ((i --- j) // j)
+(* Can't expect Discover to get these *)
+lemma nat_to_ord_zero x =
+  ((nat_to_ordinal x) [@trigger] = Int 0) = (x = Z)
+[@@auto] [@@fc]
+;;
+
+(* Now, back to your regularly scheduled ACL programming. *)
+
+(* 171 *)
+let rec quotient i j =
+  if j = Z then Z
+  else if lessp i j then Z
+  else S (quotient (difference i j) j)
 [@@measure nat_to_ordinal i]
 [@@validate_induct]
 ;;
 
+(* 172 *)
 let rec remainder i j =
-  if j = Zero then i
-  else if i <<| j then i
-  else remainder (i --- j) j
+  if j = Z then i
+  else if lessp i j then i
+  else remainder (difference i j) j
 [@@measure nat_to_ordinal i]
 [@@validate_induct]
 ;;
 
-lemma rem_quot x y =
- (remainder x y) ++ (y ** (x // y)) = x
- [@@auto] [@@rw]
+let rec rq_induct x y =
+  match x,y with
+  | Z, _
+  | _, Z -> true
+  | x,y -> rq_induct (difference x y) y
+[@@validate_induct]
 ;;
 
-lemma lessp_diff_1 x y =
-  not (x <<| (x --- y))
+(* A G-lemma: We need it currently, as we select the wrong induction (plus)! *)
+(* lemma discover__36 x0 x1 = (x_not_less_y x0 x1) ==> (plus x1 (difference x0 x1)) = x0   [@@auto] *)
+(* lemma discover__36 x0 x1 = not (lessp x y) ==> (plus x1 (difference x0 x1)) = x0   [@@auto] *)
+lemma g_plus_helper x y =
+ not (lessp x y)
+ ==> plus y (difference x y) = x
+ [@@induct functional difference]
+ [@@rw]
+;;
+
+(* 175 - Note that we don't construct exactly the same toplevel induction
+         as that given by rq_induct, which we should.
+         TODO: investigate why!
+ *)
+(* BUG: Discover should be able to get this, but the LHS is quite large *)
+lemma remainder_quotient x y =
+  plus (remainder x y) (times y (quotient x y)) = x
+[@@induct functional rq_induct] [@@rw]
+;;
+
+(* 179 *)
+(* lemma discover__3 x2 x1 = (lessp x2 (difference x2 x1)) = false [@@rewrite]  [@@auto];; *)
+lemma lessp_difference1 x y =
+  not (lessp x (difference x y))
 [@@auto] [@@rw]
 ;;
 
-lemma remainder_one x =
-  remainder x (Succ Zero) = Zero
+(* 180 *)
+(* lemma discover__3 x1 = (remainder x1 (succ_nat Z)) = Z [@@rewrite]  [@@auto] *)
+(* lemma discover__3 x1 = (remainder x1 (S Z)) = Z [@@rewrite]  [@@auto] *)
+lemma remainder_wrt_1 x =
+  remainder x (S Z) = Z
 [@@auto] [@@rw]
 ;;
 
+(* 182 - our first generalization rule in this development! *)
+(* TODO: investigate why I'm not getting this *)
 lemma lessp_remainder_2 x y =
-  (remainder x y <<| y) = (y <> Zero)
-[@@auto] [@@rw]
+  lessp ((remainder x y) [@trigger]) y = (y <> Z)
+[@@auto] [@@rw] [@@gen]
 ;;
 
+(* 183 *)
+(* TODO: investigate why I'm not getting this *)
 lemma lessp_difference x y =
-  not (y <<| x)
-  ==>
-  x --- y = Zero
+  not (lessp y x) ==> (difference x y = Z)
 [@@auto] [@@rw]
 ;;
 
-lemma remainder_zero x =
-  remainder x x = Zero
+(* 184 *)
+(* lemma discover__2 x1 = (remainder x1 x1) = Z [@@rewrite]  [@@auto] *)
+lemma remainder_x_x x =
+  remainder x x = Z
 [@@auto] [@@rw]
 ;;
 
-(* A good elimination rule for when we support user-extended
-   destructor elimination. *)
-
+(* 185 - our first elimination rule in this development! *)
 lemma remainder_quotient_elim x y =
-  y <> Zero ==>
-(remainder x y) ++ (y ** (x // y)) = x
-[@@auto] [@@rw] [@@fc]
-;;
-
-lemma plus_eq_zero x y =
-  (x ++ y = Zero) = (x = Zero && y = Zero)
-[@@auto] [@@rw]
-;;
-
-lemma plus_cancellation_1 x y =
-  (x ++ y = x) = (y = Zero)
-[@@auto] [@@rw]
-;;
-
-lemma lessp_plus_times x j z =
-  z <> Zero && j <> Zero
+  y <> Z
   ==>
-  x <<| (z ++ (j ** x))
+  plus (remainder x y) (times y (quotient x y)) = x
+[@@auto] [@@elim]
+;;
+
+(* 186 *)
+(* discover db ~verbose:true ~iterations:3i ["(&&)";"Z";"plus";"equal_nat";];; *)
+(* BUG: Not getting this because an obviously false conjecutre about (&&) is made *)
+(* lemma discover__276 x1 x2 = ((&&) (equal_nat x1 Z) (equal_nat x2 Z)) = (equal_nat Z (plus x1 x2)) [@@rewrite]  [@@auto] *)
+(* Was able to get discover 276 by disabling rewriting *)
+lemma plus_equal_0 x y =
+  (plus x y = Z) = (x = Z && y = Z)
 [@@auto] [@@rw]
 ;;
 
-lemma quot_one i =
- (i // Succ Zero) = i
+(* 187 *)
+(* lemma discover__10 x2 x1 = (equal_nat x2 (plus x1 (plus x1 x2))) = (equal_nat Z x1) [@@rewrite]  [@@auto] *)
+lemma plus_cancellation1 x y =
+  (plus x y = x) = (y = Z)
 [@@auto] [@@rw]
 ;;
 
-(* I AM HERE (~189) *)
-(*
-lemma lessp_quot i j =
-i <> Zero && j <> Succ Zero
- ==>
-(i // j) <<| i
-[@@auto] [@@rw] [@@fc]
-;;
-
-lemma lessp_quotient_1 i j =
-  ((i // j) <<| i) <== (i <> Zero && (j = Zero || j <> Succ Zero))
+(* 188 *)
+lemma lessp_plus_times j x z =
+  z <> Z && j <> Z ==> lessp x (plus z (times j x))
 [@@auto] [@@rw]
 ;;
-*)
+
+(* 189 *)
+lemma lessp_quotient1 i j =
+  lessp (quotient i j) i = (i <> Z && (j = Z || j <> S Z))
+[@@auto] [@@rw] [@@otf]
+;;
+
+(* 190 - without the hint, we try to induct following lessp *)
+lemma lessp_remainder1 x y =
+  lessp (remainder x y) x = (y <> Z && x <> Z && not (lessp x y))
+[@@induct functional remainder] [@@rw]
+;;
+
+(* 191 *)
+lemma recursion_by_quotient i j =
+  i <> Z && j <> Z && j <> S Z
+  ==>
+    lessp (quotient i j) i
+[@@auto] [@@rw]
+;;
+
+(* 196 - gcd *)
+(* We need to do a little work for proving termination *)
+let pair_measure x y =
+  Ordinal.pair
+    (Ordinal.simple_plus (nat_to_ordinal x) Ordinal.one)
+    (Ordinal.simple_plus (nat_to_ordinal y) Ordinal.one)
+;;
+
+lemma pair_measure_valid x y =
+  Ordinal.is_valid (pair_measure x y)
+[@@auto] [@@rw]
+;;
+
+lemma nat_to_ordinal_injective x y =
+  (nat_to_ordinal x = nat_to_ordinal y) = (x = y)
+[@@induct x,y] [@@rw]
+;;
+
+lemma lessp_nat_to_ordinal x y =
+  lessp x y ==> not(nat_to_ordinal x = nat_to_ordinal y)
+[@@auto] [@@rw]
+;;
+
+#disable Ordinal.is_valid;;
+
+lemma elim_pair_measure x y z w =
+  Ordinal.(pair_measure x y << pair_measure z w)
+  = (lessp x z || (x = z && lessp y w))
+[@@auto] [@@otf] [@@rw]
+;;
+
+(* TODO: make define_check take disables into account! *)
+#disable pair_measure;;
+
+let rec gcd x y =
+  if x = Z then y
+  else if y = Z then x
+  else if lessp x y then
+    gcd x (difference y x)
+  else
+    gcd (difference x y) y
+  [@@measure pair_measure x y]
+  [@@validate_induct]
+;;
+
+(* 197 *)
+lemma lessp_not_commutative x y =
+  lessp y x ==> not (lessp x y)
+[@@auto] [@@rw]
+;;
+
+(* 198 *)
+(* lemma discover__1 x0 x1 = (gcd x1 x0) = (gcd x0 x1) [@@rewrite] [@@permutative] [@@auto] *)
+lemma commutativity_of_gcd x y =
+  gcd x y = gcd y x
+[@@auto] [@@permutative] [@@rw]
+;;
+
+(* 202 *)
+lemma recursion_by_remainder x y =
+  y <> Z && lessp y x ==> lessp (remainder x y) x
+[@@auto] [@@rw]
+;;
+
+(* 208 *)
+lemma difference_plus x y =
+  (difference (plus x y) x) = y
+[@@auto] [@@rw]
+;;
+
+(* 209 *)
+lemma plus_difference3 x y z =
+  (difference (plus x y) (plus x z)) = (difference y z)
+[@@auto] [@@rw]
+;;
+
+(* 210 - without the hint, we induct following times *)
+lemma times_difference c x w =
+  (difference (times c x) (times w x)) = (times x (difference c w))
+[@@induct functional difference] [@@rw]
+;;
+
+(* 211 *)
+let divides x y =
+  remainder y x = Z
+;;
+
+(* 212 *)
+lemma divides_times x z =
+  (remainder (times x z) z) = Z
+[@@auto] [@@rw]
+;;
+
+(* 213 *)
+lemma difference_plus2 a b c =
+    difference (plus b (plus a c)) a = plus b c
+[@@auto] [@@rw]
+;;
+
+   (* 214 *)
+lemma equal_difference x y k =
+    (x = difference y k)
+    = (if lessp k y
+        then y = plus x k
+        else x = Z)
+[@@auto] [@@rw]
+;;
+
+   (* 215 *)
+lemma difference_add1_cancellation y z =
+    difference (S (plus y z)) z = S y
+[@@auto] [@@rw]
+;;
+
+(* 216 - this one takes a good while! let's study for optimizations *)(* Quite sensitive to the backchain limit elaboration heuristics *)
+
+lemma remainder_add1 x y =
+  y <> Z && y <> S Z
+   ==>
+  remainder (S (times x y)) y <> Z
+[@@auto] [@@rw]
+;;
+
+(* 222 - we move this above 217! *)
+lemma difference_elim x y =
+    not (lessp y x) ==> (plus x (difference y x)) = y
+[@@auto] [@@elim]
+;;
+   (* 217 - I think we need DIFFERENCE-ELIM! *)
+lemma divides_plus_rewrite1 x y z =
+    remainder x z = Z && remainder y z = Z
+    ==>
+    (remainder (plus x y) z) = Z
+[@@auto] [@@rw]
+;;
+   lemma difference_plus_3 a b c =
+    difference (plus b (plus a c)) a = plus b c
+[@@auto] [@@rw]
+;;
+   (* 218 *)
+lemma divides_plus_rewrite2 x y z =
+    remainder x z = Z
+    && remainder y z <> Z
+    ==>
+    remainder (plus x y) z <> Z
+[@@induct functional remainder] [@@rw]
+;;
+
+(* 219 *)(* This is not found by Discover because the RHS is small and has unbound variables. *)
+(* This could be fixed by instantiating terms with combinations of bound and unbound variables. *)
+ (* BUG: Discover cannot get this because of lack of instantiation *)
+
+lemma divides_plus_rewrite x y z =
+  remainder x z = Z
+   ==>
+  (remainder (plus x y) z = Z) = (remainder y z = Z)
+[@@auto] [@@rw]
+;;
+
+(* 220 *)
+(* This is not found by Discover because the RHS is small and has unbound variables. *)
+(* This could be fixed by instantiating terms with combinations of bound and unbound variables. *)
+(* BUG: Discover cannot get this because of lack of instantiation *)
+
+lemma divides_plus_rewrite_commuted x y z =
+  remainder x z = Z
+   ==>
+  (remainder (plus y x) z = Z) = (remainder y z = Z)
+[@@auto] [@@rw]
+;;
+
+(* 221 *)
+(* "lemma discover__18 x1 x2 = (not (lessp x2 x1)) = (not (lessp zero (difference x1 x2))) [@@rewrite]  [@@auto]"; *)
+
+lemma lessp_difference2 x y =
+  (difference x y = Z) = (not (lessp y x))
+[@@auto] [@@rw]
+;;
+
+(* 223 *)
+(* "lemma discover__6 x5 x1 x2 = (lessp (plus x1 x5) (plus x2 x5)) = (lessp x1 x2) [@@rewrite]  [@@auto]"; *)
+
+lemma lessp_plus_cancellation x y z =
+  lessp (plus x y) (plus x z) = lessp y z
+[@@auto] [@@rw]
+;;
+
+(* 224 *)
+(* This follows from 223 by commutativity *)
+
+lemma lessp_plus_cancellation2 x y z =
+  lessp (plus x y) (plus z x) = lessp y z
+[@@auto] [@@rw]
+;;
+
+let remainder_zero x y = remainder x y = zero;;
+let nat_equal (x:nat) (y:nat) = x = y;;
+
+#require "imandra-discover-bridge";;
+Imandra_discover_bridge.Top.init ();;
+(* let funlist = [{|zero|};{|lessp|};{|plus|};{|difference|};{|times|};{|remainder|};];; *)
+let funlist = ["zero";{|plus|};{|remainder|};"="];;
+(* Imandra_discover_bridge.User_level.discover {|fta_test|} ~verbose:true db funlist;; *)
+Imandra_discover_bridge.User_level.discover {|fta_test|} ~kb_completion:false ~condition:"remainder_zero" ~verbose:true db funlist;;
+
+(* 225 *)
+(* Note: It's crucial here we apply difference_elim, rather than
+   quotient_remainder_elim! The `age' of the destructor is key. *)
+(* theorem euclid x y z =
+     remainder x z = Z
+     ==>
+       (remainder (difference y x) z = Z)
+        =
+       (if lessp x y then
+          (remainder y z = Z)
+        else true)
+   [@@auto] [@@rw]
+   ;; *)
+
+
+
+(* (\* 226 *\)
+   lemma lessp_times_cancellation x y z =
+     lessp (times x z) (times y z) = (z <> Z && lessp x y)
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 227 *\)
+   lemma distributivity_of_times_over_gcd x y z =
+     gcd (times x z) (times y z)
+     = times z (gcd x y)
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 228 *\)
+   (\* Note: it's crucial we don't break the conjunction into subgoals before induction! *\)
+   lemma gcd_divides_both x y =
+     (remainder x (gcd x y) = Z
+      && remainder y (gcd x y) = Z)
+   [@@auto] [@@rw]
+   ;;
+
+   let lesseqp x y = x = y || lessp x y;;
+
+   (\* 229 - note, this isn't required in the FTA proof, but it's cool! *\)
+   lemma gcd_is_the_greatest x y z =
+     x <> Z
+     && y <> Z
+     && divides z x
+     && divides z y
+      ==>
+     lesseqp z (gcd x y)
+   [@@auto]
+   ;;
+
+   (\* 237 - tricky! we now get it, but it's slow.
+      We disable `lessp` to make it a bit faster.
+      A great motivator for elimination of irrelevance! *\)
+
+   #max_induct 1;;
+
+   lemma helper_again x y v =
+     lessp x (S y)
+     ==>
+     lessp x (S (plus y v))
+   [@@auto] [@@rw]
+   ;;
+
+   #max_induct 4;;
+
+   lemma lessp_d_v_helper v gen_1 gen_2 z =
+   match plus gen_1 v with
+     | Z -> true
+     | S m ->
+       lessp v (plus gen_1 gen_2)
+       && v <> Z && z <> Z
+       ==>
+       lessp v (S (plus gen_2 (plus z m)))
+   [@@induct functional plus]
+   [@@rw]
+   ;;
+
+   lemma lessp_d_v d v z =
+     d <> Z && v <> Z && z <> Z
+     ==>
+     lessp v (plus (times d v) (times d z))
+   [@@auto] [@@rw]
+   ;;
+
+   #max_induct 1;;
+
+   (\* 274 *\)
+   let rec prime1 x y =
+     match y with
+     | Z -> false
+     | S Z -> true
+     | S k -> (not (divides y x)) && (prime1 x k)
+   ;;
+
+   (\* 275 *\)
+   let prime x =
+     match x with
+     | Z -> false
+     | S Z -> false
+     | S k -> prime1 x k
+   ;;
+
+   (\* 276 *\)
+   let rec greatest_factor x y =
+     match y with
+     | Z -> x
+     | S Z -> x
+     | S k ->
+       if divides y x then
+        y
+       else
+         greatest_factor x k
+   ;;
+
+   (\* 279 - instead of using the `id` trick, we explicitly give the
+      functional induction scheme that we'd like.
+
+      Also, we prove a little helper lemma.
+    *\)
+   lemma g_helper y1 gen_1 gen_2 =
+     lessp (S y1) (plus gen_2 (times gen_1 (S y1)))
+     ==>
+     lessp y1 (plus gen_2 (times gen_1 (S y1)))
+   [@@auto] [@@rw]
+   ;;
+
+   let rec gf_induct x y =
+     match y with
+     | Z -> true
+     | S Z -> true
+     | S k -> gf_induct x k
+   ;;
+
+   lemma greatest_factor_lessp x y =
+     lessp y x
+     && not (prime1 x y)
+     && x <> Z
+     && x <> S Z
+     && y <> Z
+        ==>
+     lessp (greatest_factor x y) x
+   [@@induct functional gf_induct]
+   [@@rw]
+   ;;
+
+   (\* 280 *\)
+   lemma greatest_factor_divides x y =
+     lessp y x
+     && not (prime1 x y)
+     && x <> Z
+     && x <> S Z
+     && y <> Z
+     ==>
+     remainder x (greatest_factor x y) = Z
+   [@@auto]
+   [@@rw]
+   ;;
+
+   (\* 282 - an induction rule, we formulate as a @@rewrite rule
+            w.r.t. our encoding of ordinals *\)
+   (\* note: we specify `gf_induct` again here *\)
+   (\* a good example needing better ancestors elaboration checks *\)
+   lemma greatest_factor_lessp_ind x y =
+     lessp y x
+     && not (prime1 x y)
+     && x <> Z
+     && x <> S Z
+     && y <> Z
+        ==>
+     lessp (greatest_factor x y) x
+   [@@induct functional gf_induct] [@@rw]
+   ;;
+
+   (\* 283 *\)
+   lemma greatest_factor_0 x y =
+     (greatest_factor x y = Z)
+      = ((y = Z || y = S Z) && x = Z)
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 284 *\)
+   lemma greatest_factor_1 x y =
+     (greatest_factor x y = S Z) = (x = S Z)
+   [@@auto] [@@rw]
+   ;;
+
+   #disable Ordinal.is_valid;;
+
+   (\* 286 *\)
+   let rec prime_factors x =
+     match x with
+     | Z | S Z -> []
+     | S k ->
+       if prime1 x k then
+        [x]
+       else
+        (prime_factors (greatest_factor x k))
+         @
+         (prime_factors (quotient x (greatest_factor x k)))
+   [@@measure nat_to_ordinal x]
+   [@@validate_induct]
+   ;;
+
+   (\* 287 *\)
+   let rec prime_list x =
+     match x with
+     | [] -> true
+     | x :: xs -> prime x && prime_list xs
+   ;;
+
+   (\* 288 *\)
+   let rec times_list xs =
+     match xs with
+     | [] -> S Z
+     | x :: xs -> times x (times_list xs)
+   ;;
+
+   #max_induct 2;;
+
+   (\* 289 *\)
+   lemma times_list_append x y =
+     times_list (x @ y) = times (times_list x) (times_list y)
+   [@@induct y] [@@rw]
+   ;;
+
+   (\* 290 *\)
+   lemma prime_list_append x y =
+     prime_list (x @ y) = (prime_list x && prime_list y)
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 291 - could be massively sped up by better caching? *\)
+   lemma prime_list_prime_factors x =
+     prime_list (prime_factors x)
+   [@@auto] [@@disable prime1,quotient,greatest_factor] [@@rw]
+   ;;
+
+   (\* 292 *\)
+   lemma quotient_times1 x y =
+     x <> Z && divides x y
+               ==> times x (quotient y x) = y
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 293 *\)
+   lemma quotient_lessp x y =
+     x <> Z && lessp x y
+     ==>
+       quotient y x <> Z
+   [@@auto] [@@rw]
+   ;;
+
+   (\* two helpers so we can disable `plus` and `times` for 296 *\)
+   lemma plus_one x =
+     plus (S Z) x = S x
+   [@@auto] [@@rw]
+   ;;
+
+   lemma times_one x =
+     times (S Z) x = x
+   [@@auto] [@@rw]
+   ;;
+
+   (\* Fascinating - how to prove `enough_factors` without this gen rule? *\)
+   lemma greatest_factor_gen x y =
+     divides ((greatest_factor x y) [@trigger]) x
+   [@@auto] [@@gen]
+   ;;
+
+   (\* 296 *\)
+   #max_induct 1;;
+   #backchain_limit 5;; (\* wow - this limit is currently crucial! *\)
+   (\* Note: can get stack overflow without disabling remainder. Why? *\)
+   lemma enough_factors x =
+     x <> Z
+     ==>
+     times_list (prime_factors x) = x
+   [@@auto] [@@disable greatest_factor,lessp,plus,times,remainder,quotient,remainder_quotient_elim] [@@rw]
+   ;;
+
+   (\* 297 - A major theorem!
+      Every non-zero natural number has a prime factorization. *\)
+   theorem prime_factorization_existence x =
+     x <> Z
+     ==>
+     times_list (prime_factors x) = x
+     && prime_list (prime_factors x)
+   [@@disable times_list, prime_list] [@@auto]
+   ;;
+
+   (\* 298 *\)
+   lemma prime_krutch x z =
+     lessp x z
+     && z <> S x
+      ==>
+      not (lessp z (S x))
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 299 *\)
+   lemma prime_bridge x z =
+     (remainder (S x) z = Z) [@trigger rw]
+     && z <> S x
+     && not ((prime1 (S x) (plus (difference x z) z)) [@trigger rw])
+      ==>
+        not (prime1 (S x) x)
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 300 *\)
+   lemma prime1_basic x z l =
+     z <> S Z
+     && z <> (S x)
+     && remainder (S x) z = Z
+      ==>
+     not (prime1 (S x) (plus z l))
+   [@@auto] [@@rw]
+   ;;
+
+   let sub1 x = match x with
+     | S k -> k
+     | Z -> Z
+   ;;
+
+   (\* 301 - TODO: why can't we get this automatically?
+      Idea: triggers in 299 *\)
+   lemma prime_basic x z =
+     match x with
+     | Z -> true
+     | S k ->
+        z <> S Z
+        && z <> x
+        && ((remainder x z = Z) [@trigger rw])
+        ==>
+        not (prime1 x k)
+   [@@apply prime_bridge (sub1 x) z]
+   [@@auto]
+   [@@rw]
+   ;;
+
+   (\* 302 *\)
+   lemma remainder_gcd x y b =
+     (gcd b x = y) [@trigger rw]
+     ==>
+     remainder b y = Z
+   [@@auto]
+   [@@rw]
+   ;;
+
+   (\* 303 *\)
+   lemma remainder_gcd_1 b x =
+     not (remainder b x = Z)
+     ==>
+     not (gcd b x = x)
+   [@@auto]
+   [@@rw]
+   ;;
+
+   (\* 304 *\)
+   lemma divides_times1 a y z =
+     (a = (times z y) [@trigger rw])
+     ==>
+     remainder a z = Z
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 305 - note the variant since we're typed *\)
+   lemma times_identity x y =
+     y = S Z ==> x = times x y
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 306 - warning about possible looping! *\)
+   lemma kludge_bridge a k x y =
+     (y = (times k x) [@trigger 0n])
+     ==>
+     ((gcd y (times a x)) [@trigger 0n]) = times x (gcd a k)
+   [@@auto] [@@fc]
+   ;;
+
+   #max_induct 0;;
+   (\* 307 - Q: How to prove without disabling d_of_t_over_gcd? *\)
+   lemma hack1 k x a b =
+      not (divides x a) && a = gcd (times x a) (times b a)
+      ==>
+      not (times k x = times b a)
+   [@@disable distributivity_of_times_over_gcd]
+   [@@auto]
+   [@@rw]
+   ;;
+
+   #max_induct 1;;
+
+   lemma gcd_one x y =
+    y = S Z ==>
+    gcd x y = S Z && gcd y x = S Z
+   [@@disable commutativity_of_gcd]
+   [@@auto]
+   [@@rw]
+   ;;
+
+   (\* 308 - Q: How to do without hints?` *\)
+   lemma prime_gcd x b =
+     not (divides x b)
+     && prime x
+     && x <> Z
+     && sub1 x <> Z
+        ==>
+     (gcd b x = S Z) = true
+   [@@apply prime_basic x b]
+   [@@apply gcd_divides_both b x]
+   [@@auto]
+   [@@rw]
+   ;;
+
+   (\* 309 - Q: How to do without hints? *\)
+   lemma prime_key x k b z =
+     prime x
+     && not (divides x z)
+     && not (divides x b)
+      ==>
+     not (times x k = times b z)
+   [@@apply hack1 k x z b]
+   [@@auto]
+   [@@rw]
+   ;;
+
+   (\* 310 *\)
+   lemma quotient_divides x y =
+     times x (quotient y x) <> y
+     ==>
+     not (remainder y x = Z)
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 311 *\)
+   lemma little_step x y =
+     prime x
+     && y <> S Z
+     && x <> y
+      ==>
+     not (remainder x y = Z)
+   [@@auto]
+   [@@rw]
+   ;;
+
+   (\* 312 *\)
+   let rec delete x l =
+     match l with
+     | [] -> []
+     | l' :: ls ->
+       if l' = x then ls
+       else l' :: delete x ls
+   ;;
+
+   (\* 313 *\)
+   let rec perm x y =
+     match x with
+     | [] -> y = []
+     | x :: xs ->
+       if List.mem x y then
+         perm xs (delete x y)
+       else false
+   ;;
+
+   (\* 314 *\)
+   lemma remainder_times x y =
+     remainder (times y x) y = Z
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 315 *\)
+   lemma prime_list_delete x l2 =
+     prime_list l2
+     ==>
+       prime_list (delete x l2)
+   [@@auto]
+   [@@rw]
+   ;;
+
+   (\* 316 *\)
+   lemma divides_times_list c l =
+     c <> Z && List.mem c l
+     ==>
+     remainder (times_list l) c = Z
+   [@@induct functional times_list]
+   [@@rw]
+   ;;
+
+   (\* 317 *\)
+   lemma quotient_times x y =
+     quotient (times y x) y
+     = if (y = Z) then Z else x
+   [@@auto]
+   [@@otf]
+   [@@rw]
+   ;;
+
+   (\* 318 *\)
+   lemma distributivity_of_divides a c w =
+     a <> Z
+     && divides a w
+      ==>
+     times c (quotient w a) = quotient (times c w) a
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 319 *\)
+   lemma times_list_delete c l =
+     c <> Z && List.mem c l
+      ==>
+     times_list (delete c l) = quotient (times_list l) c
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 320 *\)
+   lemma prime_list_times_list c l2 =
+     prime c
+     && prime_list l2
+     && not (List.mem c l2)
+      ==>
+     not (remainder (times_list l2) c = Z)
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 321 *\)
+   lemma if_times_then_divides c x y =
+     c <> Z && not (divides c x)
+     ==>
+     not (times c y = x)
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 322 *\)
+   lemma prime_member c l1 l2 =
+     prime c
+     && prime_list l2
+     && (times c (times_list l1)) [@trigger rw] = times_list l2
+     ==>
+     List.mem c l2
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 323 *\)
+   lemma divides_implies_times a b c =
+     a <> Z && times a c = b
+     ==>
+     (c = quotient b a) = true
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 324 *\)
+   lemma times_equal_1 a b =
+     (times a b = S Z)
+     =
+     (a <> Z && b <> Z && sub1 a = Z && sub1 b = Z)
+   [@@auto] [@@rw]
+   ;;
+
+   #max_induct 2;;
+
+   lemma prime_product_non_one l =
+     prime_list l && l <> []
+      ==>
+     times_list l <> S Z
+   [@@auto] [@@rw]
+   ;;
+
+   (\* 325 *\)
+   theorem prime_factorization_uniqueness l1 l2 =
+     prime_list l1
+     && prime_list l2
+     && times_list l1 = times_list l2
+     ==>
+     perm l1 l2
+   [@@auto]
+   ;; *)
+
+(* Q.E.D! *)
+
+(* assert_true "some beautiful theorems!" true;; *)

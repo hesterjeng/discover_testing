@@ -1,0 +1,212 @@
+(plus Z x1) = x1 ,1
+(lessp x1 Z) = (lessp Z Z)  ,0
+(lessp x1 x1) = (lessp Z Z)  ,0
+(plus x3 x1) = (plus x1 x3) ,1
+(lessp (plus x1 x3) x1) = (lessp Z Z)  ,0
+(lessp Z (plus x1 x1)) = (lessp Z x1)  ,0
+(lessp x3 (plus x1 x3)) = (lessp Z x1)  ,0
+(lessp (plus x1 (plus x3 x5)) x3) = (lessp Z Z)  ,0
+(lessp x1 (plus x1 (plus x3 x3))) = (lessp Z x3)  ,0
+(lessp (plus x1 x5) (plus x3 x5)) = (lessp x1 x3)  ,0
+(lessp (plus x1 x1) (plus x1 x3)) = (lessp x1 x3)  ,0
+(lessp (plus x1 x1) (plus x3 x3)) = (lessp x1 x3)  ,0
+(lessp (plus x1 x3) (plus x1 x1)) = (lessp x3 x1)  ,0
+(plus x3 (plus x1 x5)) = (plus x1 (plus x3 x5)) ,1
+(plus (plus x1 x3) x5) = (plus x1 (plus x3 x5)) ,1
+(lessp (plus x1 (plus x1 x5)) x3) = (lessp (plus x1 x5) x3)  ,0
+(lessp Z (plus x1 (plus x3 x3))) = (lessp Z (plus x1 x3))  ,0
+(lessp Z (plus x1 (plus x1 x3))) = (lessp Z (plus x1 x3))  ,0
+(lessp x3 (plus x1 (plus x3 x5))) = (lessp Z (plus x1 x5))  ,0
+(lessp x5 (plus x1 (plus x3 x5))) = (lessp Z (plus x1 x3))  ,0
+(plus x0 (succ_nat x1)) = (succ_nat (plus x0 x1)) ,1
+(plus (succ_nat x0) x1) = (succ_nat (plus x0 x1)) ,1
+(times Z x0) = Z ,1
+(times (succ_nat Z) x0) = x0 ,0
+(times x1 x0) = (times x0 x1) ,0
+(plus x1 x0) = (plus x0 x1) ,0
+(plus x0 (succ_nat x1)) = (succ_nat (plus x0 x1)) ,0
+(plus (succ_nat x0) x1) = (succ_nat (plus x0 x1)) ,0
+(times x0 (succ_nat x1)) = (plus x0 (times x0 x1)) ,1
+(plus x1 (plus x0 x2)) = (plus x0 (plus x1 x2)) ,0
+(plus (plus x0 x1) x2) = (plus x0 (plus x1 x2)) ,0
+(times x1 (times x0 x2)) = (times x0 (times x1 x2)) ,1
+(times (times x0 x1) x2) = (times x0 (times x1 x2)) ,1
+(succ_nat (times (succ_nat x0) x1)) = (succ_nat (plus x1 (times x0 x1))) ,0
+(times (succ_nat (succ_nat x0)) x1) = (plus x1 (plus x1 (times x0 x1))) ,0
+(times x0 (plus x1 x1)) = (plus (times x0 x1) (times x0 x1)) ,0
+(times (plus x0 x1) x2) = (plus (times x0 x2) (times x1 x2)) ,0
+(times x1 (plus x0 x2)) = (plus (times x0 x1) (times x1 x2)) ,0
+(times (succ_nat (times x0 x1)) x2) = (plus x2 (times x0 (times x1 x2))) ,0
+(plus (times (succ_nat x0) x1) x2) = (plus x1 (plus (times x0 x1) x2)) ,0
+(plus x0 (times (succ_nat x1) x2)) = (plus x0 (plus x2 (times x1 x2))) ,0
+(times x0 (times (succ_nat x1) x2)) = (plus (times x0 x2) (times x0 (times x1 x2))) ,0
+(times (succ_nat x0) (times x1 x2)) = (plus (times x1 x2) (times x0 (times x1 x2))) ,0
+(times x0 (plus x1 x1)) = (plus (times x0 x1) (times x0 x1)), 1
+(times (plus x0 x1) x2) = (plus (times x0 x2) (times x1 x2)), 1
+(times x1 (plus x0 x2)) = (plus (times x0 x1) (times x1 x2)), 1
+((||) x1 x1) = x1 ,0
+(equal_nat x0 x0) = (equal_nat Z Z) ,0
+(equal_nat x2 x0) = (equal_nat x0 x2) ,0
+((||) x3 x1) = ((||) x1 x3) ,0
+((||) (equal_nat Z Z) x1) = (equal_nat Z Z) ,0
+((||) x3 ((||) x1 x3)) = ((||) x1 x3) ,0
+((||) x1 ((||) x1 x3)) = ((||) x1 x3) ,0
+((||) ((||) x1 x3) x5) = ((||) x1 ((||) x3 x5)) ,0
+(equal_nat (times x0 x0) x2) = (equal_nat x0 (times x2 x2)) ,0
+(equal_nat Z (times x0 x2)) = ((||) (equal_nat Z x0) (equal_nat Z x2)) ,1
+(equal_nat x0 (times x0 x2)) = ((||) (equal_nat Z x0) (equal_nat x0 x2)) ,0
+(equal_nat x0 (times x2 (times x4 x4))) = (equal_nat x0 (times x2 x4)) ,0
+(equal_nat x2 (times x0 (times x0 x4))) = (equal_nat x2 (times x0 x4)) ,0
+(equal_nat (times x0 x2) (times x0 x4)) = ((||) (equal_nat Z x0) (equal_nat x2 x4)) ,0
+(equal_nat (times x0 x4) (times x2 x4)) = ((||) (equal_nat x0 x2) (equal_nat Z x4)) ,0
+((||) x1 ((||) (equal_nat Z x0) x3)) = ((||) (equal_nat Z x0) ((||) x1 x3)) ,0
+((||) (equal_nat x0 x2) ((||) x1 x3)) = ((||) x1 ((||) (equal_nat x0 x2) x3)) ,0
+(equal_nat (times x0 (times x2 x2)) x4) = (equal_nat (times x0 x2) (times x4 x4)) ,0
+(equal_nat (times x0 (times x0 x2)) x4) = (equal_nat (times x0 x2) (times x4 x4)) ,0
+((||) x3 ((||) x1 ((||) x5 x7))) = ((||) x1 ((||) x3 ((||) x5 x7))) ,0
+((||) x3 ((||) x5 ((||) x1 x7))) = ((||) x1 ((||) x3 ((||) x5 x7))) ,0
+(lessp x0 x0) = false ,1
+(lessp (succ_nat x0) x0) = false ,0
+(lessp x0 (succ_nat x0)) = true ,1
+(lessp (succ_nat (succ_nat x0)) x0) = false ,0
+(lessp x0 (succ_nat (succ_nat x0))) = true ,0
+(lessp (succ_nat x0) (succ_nat x2)) = (lessp x0 x2) ,0
+(x1 = S x2) ==> (lessp x2 x1) = true ,1
+(lessp x0 (succ_nat x0)) = true ,1
+(lessp x0 (succ_nat (succ_nat x0))) = true, 0
+(lessp (succ_nat x0) x0) = (lessp x0 x0), 0
+(lessp (succ_nat (succ_nat x0)) x0) = (lessp x0 x0), 0
+(lessp (succ_nat x0) (succ_nat x2)) = (lessp x0 x2), 0
+(lessp x0 x1 && lessp x1 x2) ==> (lessp x0 x0) = true ,0
+(lessp x0 x1 && lessp x1 x2) ==> (lessp x0 x1) = true ,1
+(lessp x0 x1 && lessp x1 x2) ==> (lessp x0 x2) = true ,0
+(lessp x0 x1 && lessp x1 x2) ==> (lessp x1 x2) = true ,0
+(lessp x0 x1 && lessp x1 x2) ==> (lessp x1 x1) = (lessp x1 x0) ,0
+(lessp x0 x1 && lessp x1 x2) ==> (lessp x2 x2) = (lessp x0 x0) ,0
+(lessp x0 x1 && lessp x1 x2) ==> (lessp x2 x0) = (lessp x1 x1) ,0
+(lessp x0 x1 && lessp x1 x2) ==> (lessp x2 x1) = (lessp x1 x1) ,0
+(lessp x0 x1 && lessp x1 x2) ==> (lessp x1 x1) = (lessp x0 x0) ,0
+(not (lessp x1 x2) && (lessp x0 x1)) ==> (lessp x1 x2) = false, 1
+(lessp x1 x2)  && (lessp x0 x1) ==> (lessp x1 x2) = true, 1
+(lessp x0 x2) && not (lessp x1 x2) ==> (lessp x0 x1) = true, 1
+(lessp x0 x2) && not (lessp x0 x1) ==> (lessp x1 x2) = true, 1
+not (lessp x1 x2) && not (lessp x0 x1) ==> (lessp x0 x0) = false, 0
+not (lessp x1 x2) && not (lessp x0 x1) ==> (lessp x1 x1) = false, 0
+not (lessp x1 x2) && not (lessp x0 x1) ==> (lessp x0 x1) = false, 0
+not (lessp x1 x2) && not (lessp x0 x1) ==> (lessp x0 x2) = false, 1
+not (lessp x1 x2) && not (lessp x0 x1) ==> (lessp x1 x2) = false, 0
+not (x0 = x1) && not (lessp x1 x0) ==> (lessp x0 x1) = true, 1
+(lessp (plus x0 x2) x0) = false, 1
+(lessp (plus x0 x2) x2) = false, 1
+(lessp (plus x0 (plus x0 x2)) x2) = false, 0
+(lessp (plus x0 (plus x2 x4)) x2) = false, 0
+(lessp x2 (plus x0 x2)) = (lessp x0 (plus x0 x0)), 0
+(lessp (plus x0 x4) (plus x0 x2)) = (lessp x4 x2), 0
+(lessp (plus x2 x4) (plus x0 x2)) = (lessp x4 x0), 0
+(lessp (plus x0 x4) (plus x2 x4)) = (lessp x0 x2), 0
+(lessp (plus x0 x0) (plus x2 x2)) = (lessp x0 x2), 0
+(plus x2 (plus x0 x4)) = (plus x0 (plus x2 x4)), 0
+(plus (plus x0 x2) x4) = (plus x0 (plus x2 x4)), 0
+(lessp x0 (plus x0 (plus x2 x2))) = (lessp x0 (plus x0 x2)), 0
+(lessp x2 (plus x0 (plus x2 x4))) = (lessp x0 (plus x0 (plus x0 x4))), 0
+(lessp x4 (plus x0 (plus x2 x4))) = (lessp x0 (plus x0 (plus x0 x2))), 0
+(lessp x0 x1) ==> (lessp x0 x1) = true, 0
+(lessp x0 x1) ==> (lessp (succ_nat x1) x2) = true, 0
+(lessp x0 x1) ==> (lessp x0 (succ_nat x0)) = true, 0
+(lessp x0 x1) ==> (lessp x0 x1) ==> (lessp x0 (succ_nat x1)) = true, 1
+(lessp x0 x1) ==> (lessp x0 (succ_nat (succ_nat x0))) = true, 0
+(lessp x0 x1) ==> (lessp x0 (succ_nat (succ_nat x1))) = true, 0
+(lessp x0 x1) ==> (lessp (succ_nat x0) (succ_nat x1)) = true, 0
+(lessp x0 x1) ==> (lessp x1 x0) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat x1) x1) = (lessp x1 x1), 0
+(lessp x0 x1) ==> (lessp (succ_nat x0) (succ_nat (succ_nat x0))) = true, 0
+(lessp x0 x1) ==> (lessp (succ_nat x0) (succ_nat (succ_nat x1))) = true, 0
+(lessp x0 x1) ==> (lessp (succ_nat x1) x0) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat x0) x0) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp x1 (succ_nat x0)) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat (succ_nat x0)) (succ_nat (succ_nat x1))) = true, 0
+(lessp x0 x1) ==> (lessp (succ_nat (succ_nat x1)) x0) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat (succ_nat x0)) x0) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat x1) (succ_nat x0)) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat x1) (succ_nat x1)) = (lessp x1 x1), 0
+(lessp x0 x1) ==> (lessp (succ_nat x0) (succ_nat x0)) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat (succ_nat x1)) (succ_nat x0)) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat (succ_nat x0)) (succ_nat x0)) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat x1) (succ_nat (succ_nat x0))) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat (succ_nat x1)) (succ_nat (succ_nat x0))) = (lessp x0 x0), 0
+(lessp x0 x1) ==> (lessp (succ_nat (succ_nat x1)) (succ_nat (succ_nat x1))) = (lessp x1 x1), 0
+(lessp x0 x1) ==> (lessp (succ_nat (succ_nat x0)) (succ_nat x1)) = (lessp (succ_nat x0) x1), 0
+(lessp x0 x1) ==> (lessp (succ_nat (succ_nat x0)) (succ_nat (succ_nat x0))) = (lessp x0 x0), 0
+not (lessp x0 x1) ==> (plus x1 (difference x0 x1)) = x0, 1
+not (lessp x0 x1) ==> (plus (difference x0 x0) x2) = x2, 0
+not (lessp x0 x1) ==> (plus x0 (difference x1 x1)) = x0, 0
+not (lessp x0 x1) ==> (difference x2 x2) = (difference x1 x1), 0
+not (lessp x0 x1) ==> (difference x0 (difference x0 x1)) = x1, 0
+not (lessp x0 x1) ==> (difference x0 (difference x1 x1)) = x0, 0
+not (lessp x0 x1) ==> (difference x1 x0) = (difference x0 x0), 0
+not (lessp x0 x1) ==> (plus x1 x0) = (plus x0 x1), 0
+not (lessp x0 x1) ==> (difference (difference x0 x1) x2) = (difference x1 x1), 0
+not (lessp x0 x1) ==> (difference x1 (plus x0 x2)) = (difference x0 x0), 0
+not (lessp x0 x1) ==> (difference x0 (plus x0 x1)) = (difference x0 x0), 0
+not (lessp x0 x1) ==> (plus x1 (difference x0 (difference x1 x2))) = (plus x0 x2), 0
+not (lessp x0 x1) ==> (plus (difference x0 x1) (difference x1 x2)) = (difference x0 x2), 0
+not (lessp x0 x1) ==> (plus x1 (plus (difference x0 x1) x2)) = (plus x0 x2), 0
+not (lessp x0 x1) ==> (difference (plus x0 x1) (difference x1 x2)) = (plus x0 x2), 0
+not (lessp x0 x1) ==> (plus x1 (plus x0 x2)) = (plus x0 (plus x1 x2)), 0
+not (lessp x0 x1) ==> (plus (plus x0 x1) x2) = (plus x0 (plus x1 x2)), 0
+not (lessp x0 x1) ==> (difference (plus x0 x0) x1) = (plus x0 (difference x0 x1)), 0
+not (lessp x0 x1) ==> (difference (plus x0 x2) (difference x1 x3)) = (plus x2 (difference x0 (difference x1 x3))), 0
+not (lessp x0 x1) ==> (difference (plus x0 x2) (difference x1 x2)) = (plus x2 (difference x0 (difference x1 x2))), 0
+not (lessp x0 x1) ==> (difference (plus x0 (plus x0 x0)) x1) = (plus x0 (plus x0 (difference x0 x1))), 0
+(lessp x3 (difference x1 x1)) = false, 0
+(difference x5 (difference x1 x1)) = x5, 0
+(difference x3 x3) = (difference x1 x1), 0
+(lessp x3 (difference x3 x1)) = false, 1
+(lessp x5 (difference (difference x5 x1) x3)) = false, 0
+(difference (difference x3 x1) x3) = (difference x1 x1), 0
+(difference (difference x1 x1) x3) = (difference x1 x1), 0
+(lessp (difference x3 x1) x3) = (lessp (difference x1 x3) x1), 0
+(lessp (difference x5 (difference x3 x5)) x1) = (lessp x5 x1), 0
+(lessp (difference x1 (difference x1 x3)) x1) = (lessp x3 x1), 0
+(lessp (difference x1 (difference x1 x3)) x3) = (lessp x1 x3), 0
+(lessp (difference x1 x3) (difference x3 x1)) = (lessp x1 x3), 0
+(difference (difference (difference x5 x1) x3) x5) = (difference x1 x1), 0
+(difference (difference x1 x3) (difference x3 x1)) = (difference x1 x3), 0
+(difference x1 (difference x1 (difference x1 x3))) = (difference x1 x3), 0
+(lessp (difference x1 x1) (difference x3 x1)) = (lessp x1 x3), 0
+(lessp x1 (difference x3 x5)) = (lessp x5 (difference x3 x1)), 0
+(difference (difference x1 x5) x3) = (difference (difference x1 x3) x5), 0
+(difference x3 (difference x3 x1)) = (difference x1 (difference x1 x3)), 0
+(lessp (difference x1 (difference x5 x3)) x5) = (lessp (difference x1 (difference x1 x3)) x5), 0
+(difference x3 (difference x1 (difference x5 x3))) = (difference x3 (difference x1 (difference x5 x1))), 0
+(lessp (difference x1 x3) (difference x5 x3)) = (lessp (difference x3 x1) (difference x5 x1)), 0
+(difference (difference x5 x3) (difference x5 x1)) = (difference (difference x1 x3), 0
+(difference x1 x5)) (difference (difference x1 x5) (difference x3 x5)) = (difference (difference x1 x3) (difference x5 x3)), 0
+(remainder Z x0) = Z, 0
+(remainder x0 Z) = x0, 0
+(remainder x0 x0) = Z, 1
+(remainder x0 (succ_nat Z)) = Z, 1
+(remainder x0 (succ_nat x0)) = x0, 0
+(remainder x0 (succ_nat (succ_nat x0))) = x0, 0
+(remainder (remainder x1 (succ_nat x0)) x1) = Z, 0
+(remainder (remainder (remainder x2 x0) x1) x2) = Z, 0
+(remainder (remainder (succ_nat x1) x0) (succ_nat x1)) = Z, 0
+(remainder (remainder (succ_nat Z) x0) (succ_nat x0)) = Z, 0
+(remainder (succ_nat x0) (succ_nat (remainder x0 x1))) = Z, 0
+(remainder x2 (remainder (remainder x1 x0) x1)) = x2, 0
+(remainder (succ_nat Z) (succ_nat (succ_nat x0))) = (succ_nat Z), 0
+(remainder (succ_nat x0) x0) = (remainder (succ_nat Z) x0), 0
+(remainder (remainder x2 (remainder x1 x0)) x2) = Z, 0
+(remainder (remainder x0 x1) x1) = (remainder x0 x1), 0
+(remainder x0 (succ_nat (remainder x0 x1))) = (remainder x0 x1), 0
+(remainder (remainder x1 x0) (succ_nat x1)) = (remainder x1 x0), 0
+(remainder (remainder x1 x0) (succ_nat (succ_nat x1))) = (remainder x1 x0), 0
+(remainder (succ_nat (remainder x0 x1)) x1) = (remainder (succ_nat x0) x1), 0
+(remainder (remainder x0 x1) (remainder x1 x2)) = (remainder x0 x1), 0
+(remainder (remainder x0 x2) x1) = (remainder (remainder x0 x1) x2), 0
+(remainder (remainder (succ_nat x1) x0) x1) = (remainder (remainder (succ_nat Z) x0) x1), 0
+(remainder (remainder x0 x1) (remainder x2 x1)) = (remainder (remainder x0 x1) x2), 0
+(remainder x0 (remainder (succ_nat Z) x0)) = (remainder (succ_nat Z) (remainder (succ_nat Z) x0)), 0
+(remainder (succ_nat x1) (succ_nat (remainder x0 x1))) = (remainder (remainder (succ_nat Z) (succ_nat x0)) x1), 0
+(remainder (succ_nat x0) (succ_nat (remainder x1 x0))) = (remainder (remainder (succ_nat Z) x0) (succ_nat x1)), 0
+(remainder x0 (remainder (succ_nat x1) (succ_nat x0))) = (remainder x1 (remainder (succ_nat x0) (succ_nat x1))), 0

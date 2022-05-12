@@ -32,7 +32,8 @@ let funlist = [{|tuple2|};{|smalls|}; {|bigs|}; {|partition|};];;
 (* #program;; *)
 (* Imandra_discover_bridge.User_level.discover {|test|} ~num_random_checks:100 ~max_formula_size:15 ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
 (* Imandra_discover_bridge.User_level.discover {|test|} ~kb_completion:false ~num_random_checks:100 ~verbose:true ~condition:"is_leaf_node" db funlist;; *)
-Imandra_discover_bridge.User_level.discover {|test|} ~subsumed:true ~kb_completion:false ~num_random_checks:100i ~verbose:true db funlist;;
+(* Imandra_discover_bridge.User_level.discover {|test|} ~subsumed:true ~kb_completion:false ~num_random_checks:100i ~verbose:true db funlist;; *)
+Imandra_discover_bridge.User_level.discover ~verbose:true db funlist;;
 
 (* theorem partition_smalls_bigs l p = partition l p = (smalls l p, bigs l p) [@@induct] [@@rewrite] got it *)
 (* ;; *)
