@@ -377,16 +377,18 @@ lemma remainder_quotient_elim x y =
 ;;
 
 (* 186 *)
-(* discover db ~verbose:true ~iterations:3i ["(&&)";"Z";"plus";"equal_nat";];; *)
+(* discover db ~verbose:true ~kb_completion:false ~iterations:3i ["(&&)";"Z";"plus";"equal_nat";];; *)
 (* lemma discover__27624 x1 x2 = ((&&) (equal_nat x1 Z) (equal_nat x2 Z)) = (equal_nat Z (plus x1 x2)) [@@rewrite]  [@@auto];; *)
 lemma discover__27624 x1 x2 = (plus x1 x2 = Z) = ((x1 = Z) && (x2 = Z)) [@@rewrite]  [@@auto];;
 
 (* 187 *)
+(* # discover db ~kb_completion:false ~verbose:true ["equal_nat";"Z";"plus";];; *)
 (* lemma discover__1025 x2 x1 = (equal_nat x2 (plus x1 (plus x1 x2))) = (equal_nat Z x1) [@@rewrite]  [@@auto];; *)
 (* lemma discover__1025 x2 x1 = ((plus x1 (plus x1 x2)) = x2) = (x1 = Z) [@@rewrite]  [@@auto];; *)
 lemma discover__1025 x2 x1 = ((plus x1 x2) = x1) = (x2 = Z) [@@rewrite]  [@@auto];;
 
 (* 188 *)
+let cond_188 x1 x2 = x1 <> Z && x2 <> Z;;
 (* Pretty deep nesting on this one... *)
 (* lemma discover__8 x3 x1 x2 = (cond_188 x1 x2) ==> (lessp x3 (plus x2 (times x1 x3))) = true   [@@auto];; *)
 lemma discover__826 x3 x1 x2 = x1 <> Z && x2 <> Z ==> (lessp x3 (plus x2 (times x1 x3))) [@@rewrite]  [@@auto];;
