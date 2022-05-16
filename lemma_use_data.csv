@@ -7,7 +7,7 @@
 (lessp x3 (plus x1 x3)) = (lessp Z x1)  ,0
 (lessp (plus x1 (plus x3 x5)) x3) = (lessp Z Z)  ,0
 (lessp x1 (plus x1 (plus x3 x3))) = (lessp Z x3)  ,0
-(lessp (plus x1 x5) (plus x3 x5)) = (lessp x1 x3)  ,0
+(lessp (plus x1 x5) (plus x3 x5)) = (lessp x1 x3)  ,1
 (lessp (plus x1 x1) (plus x1 x3)) = (lessp x1 x3)  ,0
 (lessp (plus x1 x1) (plus x3 x3)) = (lessp x1 x3)  ,0
 (lessp (plus x1 x3) (plus x1 x1)) = (lessp x3 x1)  ,0
@@ -245,73 +245,590 @@ not (lessp x0 x1) ==> (difference (plus x0 (plus x0 x0)) x1) = (plus x0 (plus x0
 ((&&) (equal_nat x0 x2) (equal_nat x2 x4)) = ((&&) (equal_nat x0 x2) (equal_nat x0 x4)), 0
 ((&&) x3 ((&&) x1 ((&&) x5 x7))) = ((&&) x1 ((&&) x3 ((&&) x5 x7))), 0
 ((&&) x3 ((&&) x5 ((&&) x1 x7))) = ((&&) x1 ((&&) x3 ((&&) x5 x7))), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat x0 x0) = (equal_nat Z Z), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat x2 x0) = (equal_nat x0 x2), 0
+(x0 <> Z && x1 <> Z) ==> (plus x2 x0) = (plus x0 x2), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat Z (plus x0 x0)) = (equal_nat Z x0), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat x2 (plus x0 x2)) = (equal_nat Z x0), 1
+(x0 <> Z && x1 <> Z) ==> (equal_nat x0 (plus x0 x0)) = (equal_nat Z x0), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat x0 (plus x0 (plus x2 x2))) = (equal_nat Z x2), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat (plus x0 x4) (plus x2 x4)) = (equal_nat x0 x2), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat (plus x0 x0) (plus x2 x2)) = (equal_nat x0 x2), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat (plus x0 x0) (plus x0 x2)) = (equal_nat x0 x2), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat (plus x0 x2) (plus x2 x2)) = (equal_nat x0 x2), 0
+(x0 <> Z && x1 <> Z) ==> (plus x2 (plus x0 x4)) = (plus x0 (plus x2 x4)), 0
+(x0 <> Z && x1 <> Z) ==> (plus (plus x0 x2) x4) = (plus x0 (plus x2 x4)), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat Z (plus x0 (plus x0 x2))) = (equal_nat Z (plus x0 x2)), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat Z (plus x0 (plus x2 x2))) = (equal_nat Z (plus x0 x2)), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat x2 (plus x0 (plus x2 x4))) = (equal_nat Z (plus x0 x4)), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat x4 (plus x0 (plus x2 x4))) = (equal_nat Z (plus x0 x2)), 0
+(x0 <> Z && x1 <> Z) ==> (equal_nat x0 (plus x0 (plus x0 x2))) = (equal_nat Z (plus x0 x2)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (plus x0 x1)) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus x0 x1)) = true, 0
+(x0 <> Z && x1 <> Z) ==> (times x1 x0) = (times x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (plus x1 x0) = (plus x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus (times x0 x1) x3)) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x3 (plus x1 (times x0 x3))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus (times x0 x0) x1)) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x3 (plus x0 (plus x1 x3))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus x1 (plus x0 x3))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x3 (times x1 (plus x0 x3))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x0 (plus x0 x1))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 x1) x0) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 x1) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x1) x0) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x1) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus (times x0 x1) x3) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (times x1 x3)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (plus x0 x1)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (plus x1 x1)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (plus x1 x3)) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (plus x1 x3)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (times x1 x3)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x1 x3)) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x1 x3)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x1 x3) (times x0 x1)) = (lessp x3 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 x1) (times x0 x3)) = (lessp x1 x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 x1) (times x1 x3)) = (lessp x0 x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x3) (plus x0 x1)) = (lessp x3 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x1 x3) (plus x0 x1)) = (lessp x3 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x3) (plus x1 x3)) = (lessp x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x0) (plus x0 x1)) = (lessp x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x1) (plus x0 x0)) = (lessp x1 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x1) (plus x1 x1)) = (lessp x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (times x0 x1)) = (lessp x0 (times x0 x0)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (times x0 x0)) = (lessp x0 (times x0 x0)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x1 x1)) = (lessp x0 (times x0 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x1 (times x0 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (times x0 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (times x1 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (times x0 x0)) x1) = (lessp (times x0 x0) x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x0 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x1 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (plus x0 (times x3 x3))) = (lessp x1 (plus x0 x3)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus x1 (times x1 x1))) = (lessp x0 (plus x1 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (times x0 (times x0 x0))) = (lessp x0 (times x0 x0)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x1 (times x1 x1))) = (lessp x0 (times x0 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x3 (times x1 (plus x0 x1))) = (lessp x3 (plus x0 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x1 (plus x1 x1))) = (lessp x0 (plus x1 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x1 x3)) x5) = (lessp (plus (times x0 x1) x3) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x1 (plus x0 x3)) x5) = (lessp (plus x0 (plus x1 x3)) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus (plus x0 x1) x3) x5) = (lessp (plus x0 (plus x1 x3)) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times (plus x0 x1) x3) x5) = (lessp (times x0 (plus x1 x3)) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus x0 x1)) = true, 0
+(x0 <> Z && x1 <> Z) ==> (times x1 x0) = (times x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (plus x1 x0) = (plus x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus (times x0 x1) x3)) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x3 (plus x1 (times x0 x3))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus (times x0 x0) x1)) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x3 (plus x0 (plus x1 x3))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus x1 (plus x0 x3))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x3 (times x1 (plus x0 x3))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x0 (plus x0 x1))) = true, 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 x1) x0) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 x1) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x1) x0) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x1) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus (times x0 x1) x3) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (times x1 x3)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (plus x0 x1)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (plus x1 x1)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (plus x1 x3)) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (plus x1 x3)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (times x1 x3)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x1 x3)) x1) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x1 x3)) x3) = (lessp x0 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x1 x3) (times x0 x1)) = (lessp x3 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 x1) (times x0 x3)) = (lessp x1 x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 x1) (times x1 x3)) = (lessp x0 x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x3) (plus x0 x1)) = (lessp x3 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x1 x3) (plus x0 x1)) = (lessp x3 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x3) (plus x1 x3)) = (lessp x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x0) (plus x0 x1)) = (lessp x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x1) (plus x0 x0)) = (lessp x1 x0), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x1) (plus x1 x1)) = (lessp x0 x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (times x0 x1)) = (lessp x0 (times x0 x0)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (times x0 x0)) = (lessp x0 (times x0 x0)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x1 x1)) = (lessp x0 (times x0 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x1 (times x0 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (times x0 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 (times x1 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (times x0 x0)) x1) = (lessp (times x0 x0) x1), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x0 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x1 x1)) x3) = (lessp (plus x0 x1) x3), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (plus x0 (times x3 x3))) = (lessp x1 (plus x0 x3)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus x1 (times x1 x1))) = (lessp x0 (plus x1 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (times x0 (times x0 x0))) = (lessp x0 (times x0 x0)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x1 (times x1 x1))) = (lessp x0 (times x0 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x3 (times x1 (plus x0 x1))) = (lessp x3 (plus x0 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x1 (plus x1 x1))) = (lessp x0 (plus x1 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 (plus x1 x3)) x5) = (lessp (plus (times x0 x1) x3) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x1 (plus x0 x3)) x5) = (lessp (plus x0 (plus x1 x3)) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus (plus x0 x1) x3) x5) = (lessp (plus x0 (plus x1 x3)) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times (plus x0 x1) x3) x5) = (lessp (times x0 (plus x1 x3)) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x1 (times x0 x3)) x5) = (lessp (times x0 (times x1 x3)) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times (times x0 x1) x3) x5) = (lessp (times x0 (times x1 x3)) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x1 (plus x0 x3)) x5) = (lessp (times x0 (plus x1 x3)) x5), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x3 (plus x0 (plus x1 x1))) = (lessp x3 (plus x0 (plus x0 x1))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus x3 (plus x1 x5))) = (lessp x0 (plus x1 (plus x3 x5))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (plus (plus x1 x3) x5)) = (lessp x0 (plus x1 (plus x3 x5))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (times x0 (times x1 x1))) = (lessp x0 (times x0 (times x0 x1))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x3 (times x1 x5))) = (lessp x0 (times x1 (times x3 x5))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times (times x1 x3) x5)) = (lessp x0 (times x1 (times x3 x5))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x1 (times x0 x3))) = (lessp x0 (times x0 (times x1 x3))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x1 (times x1 (plus x0 x3))) = (lessp x1 (times x0 (plus x1 x3))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times (plus x1 x1) x3)) = (lessp x0 (times x1 (plus x3 x3))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp x0 (times x1 (plus x0 x3))) = (lessp x0 (times x0 (plus x1 x3))), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x3 x3) (times x0 x1)) = (lessp (plus x3 x3) (plus x0 x1)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (times x0 x1) (plus x1 x1)) = (lessp (times x0 x0) (plus x0 x0)), 0
+(x0 <> Z && x1 <> Z) ==> (lessp (plus x0 x1) (times (plus x0 x1) x3)) = (lessp (plus x0 x1) (plus x3 x3)), 0
+lessp x2 x1 ==> not (lessp x1 x2), 1
+(gcd x0 x0) = x0, 0
+(gcd x1 x0) = (gcd x0 x1), 1
+(gcd x1 (gcd x0 x1)) = (gcd x0 x1), 0
+(gcd x0 (gcd x0 x1)) = (gcd x0 x1), 0
+(gcd (gcd x0 x1) x2) = (gcd x0 (gcd x1 x2)), 0
+(gcd x1 (gcd x0 (gcd x2 x3))) = (gcd x0 (gcd x1 (gcd x2 x3))), 0
+(gcd x1 (gcd x2 (gcd x0 x3))) = (gcd x0 (gcd x1 (gcd x2 x3))), 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 x0) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 x1) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 x0) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x3 x1) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x0) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x0) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x1) x0) = true, 1
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x1) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 x0) x0) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder x0 x0)) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder x0 x0)) = x0, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder x1 x1)) = x0, 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 x1) = (lessp x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x1 x1) x1) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x1 x1) x0) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x1 x0) x1) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x1 x0) x0) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x0) x3) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x3 x3) x1) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x3 x1) x3) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x3 x1) x1) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x3) x1) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x1 x0) x3) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x3 x1) x0) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x3) x1) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x3 x1) x0) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x5 x1) x3) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x0) x0) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x0) x0) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x0) x1) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x1) x0) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x1) x1) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x1) x3) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x1) x3) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 (remainder x1 x1)) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 (remainder x1 x0)) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 (remainder x0 x0)) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x3 (remainder x1 x3)) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 (remainder x0 x3)) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x3 (remainder x1 x0)) x1) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x3 (remainder x1 x0)) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 (remainder x1 x0)) x0) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder x0 (remainder x1 x1))) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder x0 (remainder x0 x0))) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder x0 (remainder x3 x3))) = true, 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x1 x0) x0) x0) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 (remainder x1 x1)) x0) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 (remainder x0 x0)) x0) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder (remainder x1 x1) x0)) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder (remainder x1 x0) x1)) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder (remainder x0 x0) x0)) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder (remainder x3 x3) x1)) = x0, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder (remainder x0 x0) x3)) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x3 (remainder (remainder x1 x1) x0)) = x3, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x3 (remainder (remainder x1 x0) x1)) = x3, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder (remainder x0 x0) x0)) = x0, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder (remainder x0 x0) x1)) = x0, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder (remainder x1 x1) x1)) = x0, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder (remainder x1 x1) x3)) = x0, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder (remainder x1 x3) x1)) = x0, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder x1 (remainder x1 x0))) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder x0 (remainder x1 x1))) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder x0 (remainder x0 x0))) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder x0 (remainder x0 x3))) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x3 (remainder x1 (remainder x1 x0))) = x3, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder x0 (remainder x3 x1))) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder x0 (remainder x3 x3))) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 x1) (remainder x1 x0)) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x3 x3) (remainder x1 x0)) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x3 x1) (remainder x1 x0)) = true, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x0) (remainder x1 x0)) = true, 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 x0) (remainder x1 x1)) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 x0) (remainder x0 x0)) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 x0) (remainder x3 x3)) = x1, 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 x0) x1) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder x1 x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder x0 x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder x0 x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x3 x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 x1) = (lessp x0 (remainder x0 x0)), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x0 x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 x1) x0) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 x0) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x0) x0) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x0) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x1) x0) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x1) x1) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder x1 (remainder x1 x0)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder x1 x0)) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 (remainder x3 x3)) x1) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 x1) = (lessp (remainder x0 (remainder x0 x0)) x0), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 (remainder x0 x0)) x1) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 (remainder x1 x1)) x1) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x1 x1) x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x1 x0) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x0 x1) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x0 x0) x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x0 x3) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x1 x0) x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x3 (remainder (remainder x3 x1) x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x3 x0) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x0 x1) x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x3 x3) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x0 x0) x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x3 (remainder (remainder x1 x1) x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x3 x1) x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x0 x3) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x3 x1) x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x0 x3) x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x3 (remainder (remainder x1 x0) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x3 x1) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x1 x5) x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x3 x1) x5)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x5 x3) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 x1) = (lessp x0 (remainder (remainder x0 x0) x0)), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x0 x0) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x0 x1) x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x1 x0) x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x1 x1) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x0 x1) x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x1 x0) x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x1 x1) x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x1 x3) x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x1 x3) x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x1 x3) x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder (remainder x1 x3) x5)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder x1 (remainder x1 x0))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder x1 (remainder x0 x1))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x0 (remainder x3 x1))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder x1 (remainder x0 x3))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x3 (remainder x3 (remainder x1 x0))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x3 (remainder x1 (remainder x1 x0))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x3 (remainder x1 x0))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x3 (remainder x1 x3))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 (remainder x5 x3))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 x1) = (lessp x0 (remainder x0 (remainder x0 x0))), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x0 (remainder x0 x1))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x0 (remainder x1 x0))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 (remainder x0 x0))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 (remainder x1 x1))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x0 (remainder x1 x3))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 (remainder x0 x3))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 (remainder x1 x3))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 (remainder x3 x0))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 (remainder x3 x1))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 (remainder x3 x3))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 (remainder x1 (remainder x3 x5))) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x1 x1) x1) x0) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x1 x1) x0) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x1 x0) x1) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x0 x0) x3) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x1 x1) x0) x3) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x3 x3) x1) x0) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x1 x0) x1) x3) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x1 x0) x3) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x0 x0) x0) x0) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x0 x0) x0) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x0 x0) x1) x0) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x0 x1) x0) x0) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x0 x1) x1) x1) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder (remainder x0 x0) x1) x3) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 (remainder x1 x0)) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 (remainder x0 x1)) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 (remainder x1 x0)) x3) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 (remainder x3 x3)) x1) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 (remainder x3 x1)) x0) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 (remainder x0 x3)) x1) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 (remainder x0 x0)) x0) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 (remainder x0 x0)) x1) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 (remainder x0 x1)) x0) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 (remainder x1 x0)) x0) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 (remainder x1 x1)) x1) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 (remainder x1 x3)) x1) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder (remainder x1 x0) x0)) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder x0 (remainder x0 x0))) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder x1 (remainder x0 x0))) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder x1 (remainder x1 x1))) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder x0 (remainder x1 (remainder x3 x3))) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 x0) (remainder x1 x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 x0) (remainder x0 x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 x0) (remainder x1 x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 x0) (remainder x3 x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x3) (remainder x1 x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 x0) (remainder x3 x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x3 x1) (remainder x0 x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x0 x1) = (lessp (remainder x0 x0) (remainder x0 x0)), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x1) (remainder x0 x0)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x1) (remainder x1 x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x1) (remainder x3 x1)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 x1) (remainder x3 x3)) = (lessp x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 x1) (remainder x1 x0)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 x1) (remainder x0 x1)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x0) (remainder x3 x1)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x1 x1) (remainder x0 x3)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x3 x3) (remainder x1 x0)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x3 x1) (remainder x0 x1)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x0) (remainder x0 x0)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x0) (remainder x0 x1)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x0) (remainder x1 x0)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x1) (remainder x0 x0)) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x1) (remainder x1 x1)) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x0) (remainder x1 x3)) = (remainder x0 x0), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x1) (remainder x1 x3)) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x0 x1) (remainder x3 x3)) = (remainder x0 x1), 0
+x1 <> Z && lessp x1 x0 ==> (remainder (remainder x3 x1) x0) = (remainder x3 (remainder x1 x0)), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x3) x3) x1) = (lessp (remainder x0 x3) x1), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x1 x0) x0) x3) = (lessp (remainder x1 x0) x3), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x3 x1) x0) x3) = (lessp (remainder x0 x1) x3), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x1) x5) x3) = (lessp (remainder x0 x1) x3), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x1) x0) x3) = (lessp (remainder x0 x1) x3), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder (remainder x0 x1) x1) x3) = (lessp (remainder x0 x1) x3), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x1 (remainder x0 x0)) x3) = (lessp (remainder x1 x0) x3), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x3 (remainder x1 x0)) x3) = (lessp (remainder x0 x1) x3), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 (remainder x1 x0)) x3) = (lessp (remainder x0 x1) x3), 0
+x1 <> Z && lessp x1 x0 ==> (lessp (remainder x0 (remainder x1 x3)) x3) = (lessp (remainder x1 x0) x3), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x1 (remainder (remainder x0 x3) x3)) = (lessp x1 (remainder x0 x3)), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x3 (remainder (remainder x1 x0) x0)) = (lessp x3 (remainder x1 x0)), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x3 (remainder x1 (remainder x0 x3))) = (lessp x3 (remainder x1 x0)), 0
+x1 <> Z && lessp x1 x0 ==> (lessp x3 (remainder x1 (remainder x0 x0))) = (lessp x3 (remainder x1 x0)), 0
+(difference (plus x0 x1) x0) = x1, 1
+(difference (plus x0 x1) x1) = x0, 0
+(difference x1 x1) = (difference x0 x0), 0
+(difference x0 (difference x1 x1)) = x0, 0
+(plus (difference x0 x0) x1) = x1, 0
+(plus x0 (difference x1 x1)) = x0, 0
+(plus x1 x0) = (plus x0 x1), 0
+(difference (difference x0 x0) x1) = (difference x0 x0), 0
+(difference (difference x0 x1) x0) = (difference x0 x0), 0
+(difference x1 (plus x0 x1)) = (difference x0 x0), 0
+(difference x0 (plus x0 x1)) = (difference x0 x0), 0
+(difference (plus x0 (plus x1 x2)) x1) = (plus x0 x2), 0
+(difference (plus x0 (plus x1 x2)) x2) = (plus x0 x1), 0
+(difference x1 (difference x0 (difference x1 x0))) = (difference x1 x0), 0
+(difference x0 (difference x0 (difference x0 x1))) = (difference x0 x1), 0
+(difference (plus x0 x2) (plus x0 x1)) = (difference x2 x1), 1
+(difference (plus x1 x2) (plus x0 x2)) = (difference x1 x0), 1
+(difference (difference (plus x0 x2) x1) x2) = (difference x0 x1), 0
+(difference (plus x0 x1) (plus x0 x0)) = (difference x1 x0), 0
+(difference (difference x0 x2) x1) = (difference (difference x0 x1) x2), 0
+(difference (difference x2 x1) x0) = (difference x2 (plus x0 x1)), 0
+(difference x0 (plus x1 x2)) = (difference (difference x0 x1) x2), 0
+(difference x1 (difference x1 x0)) = (difference x0 (difference x0 x1)), 0
+(plus x1 (plus x0 x2)) = (plus x0 (plus x1 x2)), 0
+(plus (plus x0 x1) x2) = (plus x0 (plus x1 x2)), 0
+(plus x1 (difference x0 x1)) = (plus x0 (difference x1 x0)), 0
+(difference (plus (difference x0 x1) x2) x0) = (difference x2 (difference x0 (difference x0 x1))), 0
+(difference (plus x0 (difference x1 x2)) x1) = (difference x0 (difference x1 (difference x1 x2))), 0
+(difference x0 (difference (plus x0 x2) x1)) = (difference x0 (difference x0 (difference x1 x2))), 0
+(difference x0 (difference x0 (difference x2 x1))) = (difference x0 (difference (plus x0 x1) x2)), 0
+(difference x1 (difference x0 (difference x2 x1))) = (difference x1 (difference x0 (difference x2 x0))), 0
+(difference (plus x1 x2) (difference x1 x0)) = (difference (plus x0 x2) (difference x0 x1)), 0
+(plus (difference x0 (difference x0 x1)) x2) = (difference (plus x0 x2) (difference x0 x1)), 0
+(plus x0 (difference x1 (difference x1 x2))) = (difference (plus x0 x1) (difference x1 x2)), 0
+(difference (plus x0 x2) (difference x2 x1)) = (difference (plus x0 x1) (difference x1 x2)), 0
+(difference (difference x2 x1) (difference x2 x0)) = (difference (difference x0 x1) (difference x0 x2)), 0
+(difference (difference x0 x2) (difference x1 x2)) = (difference (difference x0 x1) (difference x2 x1)), 0
+(plus x0 (plus (difference x1 x0) x2)) = (plus x1 (plus (difference x0 x1) x2)), 0
+(difference x2 (difference (plus x1 x2) x0)) = (difference (difference x0 x1) (difference (difference x0 x1) x2)), 0
+(difference x1 (difference x0 x0)) = x1, 0
+(difference x0 (difference x0 x0)) = x0, 0
+(difference x1 x1) = (difference x0 x0), 0
+(times x1 x0) = (times x0 x1), 0
+(difference (difference x0 x0) x1) = (difference x0 x0), 0
+(difference (difference x0 x1) x0) = (difference x0 x0), 0
+(difference x0 (times x0 x0)) = (difference x0 x0), 0
+(times (difference x0 x0) x1) = (difference x0 x0), 0
+(times x0 (difference x1 x1)) = (difference x0 x0), 0
+(difference (difference (difference x2 x0) x1) x2) = (difference x0 x0), 0
+(difference (difference (difference x0 x1) x1) x1) = (difference x0 x1), 0
+(difference x0 (difference x0 (difference x0 x1))) = (difference x0 x1), 0
+(times x1 (times x1 (difference x0 x1))) = (difference x0 x0), 0
+(times x0 (times (difference x1 x0) x2)) = (difference x0 x0), 0
+(difference (difference x0 x2) x1) = (difference (difference x0 x1) x2), 0
+(difference x1 (difference x1 x0)) = (difference x0 (difference x0 x1)), 0
+(times x1 (times x0 x2)) = (times x0 (times x1 x2)), 0
+(times (times x0 x1) x2) = (times x0 (times x1 x2)), 0
+(difference x2 (times x0 x1)) = (difference x2 (difference x0 (difference x0 x1))), 0
+(difference x0 (times x1 (times x1 x2))) = (difference x0 (times x1 x2)), 0
+(difference x0 (times x1 (times x2 x2))) = (difference x0 (times x1 x2)), 0
+(times x0 (difference x2 x1)) = (difference (times x0 x2) (times x0 x1)), 1
+(times (difference x0 x1) x2) = (difference (times x0 x2) (times x1 x2)), 0
+(times x0 (difference x1 x0)) = (difference (times x0 x1) (times x0 x0)), 0
+(times x1 (difference x0 x2)) = (difference (times x0 x1) (times x1 x2)), 0
+(difference (difference x0 x1) (times x2 x2)) = (difference (difference x0 x1) x2), 0
+(times (difference x0 x2) (difference x1 x2)) = (times x0 (difference x1 x2)), 0
+(difference x1 (difference x0 (difference x1 (difference x1 x2)))) = (difference x1 (difference x0 x2)), 0
+(difference x0 (difference x1 (difference x2 x1))) = (difference x0 (difference x1 (difference x2 x0))), 0
+(difference (difference x2 x1) (difference x2 x0)) = (difference (difference x0 x1) (difference x0 x2)), 0
+(difference (difference x0 x2) (difference x1 x2)) = (difference (difference x0 x1) (difference x2 x1)), 0
+(times x0 (times x2 (difference x3 x1))) = (times (difference x0 x1) (times x2 x3)), 0
+(difference x2 (difference (difference x1 x0) x0)) = (difference x2 (difference x1 (difference x0 (difference x0 x1)))), 0
+(times Z x0) = Z, 0
+(remainder Z x0) = Z, 0
+(remainder x0 Z) = x0, 0
+(remainder x0 x0) = Z, 0
+(remainder (remainder x1 x0) x1) = Z, 0
+(remainder (times x0 x1) x0) = Z, 0
+(remainder (times x0 x1) x1) = Z, 1
+(times x1 x0) = (times x0 x1), 0
+(remainder x0 (times x1 (times x2 x3))) = x0, 0
+(remainder x0 (times x2 (remainder x1 x2))) = x0, 0
+(times x1 (times (remainder x0 x1) x2)) = Z, 0
+(remainder (remainder x0 x1) x1) = (remainder x0 x1), 0
+(times (remainder x0 (times x0 x2)) (remainder x2 x1)) = Z, 0
+(times (remainder x1 (times x0 x1)) (remainder x0 x2)) = Z, 0
+(times x1 (times (remainder x0 (times x0 x1)) x2)) = Z, 0
+(remainder (remainder x2 x1) x0) = (remainder (remainder x2 x0) x1), 0
+(remainder (remainder x0 (remainder x1 x2)) x1) = (remainder x0 x1), 0
+(remainder (remainder x0 (times x1 x2)) x1) = (remainder x0 x1), 0
+(remainder (remainder x0 (times x1 x2)) x2) = (remainder x0 x2), 0
+(remainder x0 (times x1 x1)) = (remainder x0 (times x0 x1)), 0
+(remainder x1 (remainder x0 (remainder x2 x0))) = (remainder x1 x0), 0
+(remainder x0 (remainder x0 (remainder x0 x1))) = (remainder x0 x1), 0
+(remainder (remainder x1 x0) (remainder x0 x2)) = (remainder x1 x0), 0
+(remainder (remainder x2 x1) (times x0 x1)) = (remainder x2 x1), 0
+(remainder (remainder x0 x1) (times x1 x2)) = (remainder x0 x1), 0
+(remainder (times x0 x2) x1) = (times (remainder x0 x1) x2), 0
+(times x1 (times x0 x2)) = (times x0 (times x1 x2)), 0
+(times (times x0 x1) x2) = (times x0 (times x1 x2)), 0
+(times x1 (remainder x0 (remainder x0 (times x0 x1)))) = (times x0 x1), 0
+(difference (plus x0 x1) x0) = x1, 0
+(difference (plus x0 x1) x1) = x0, 0
+(difference x1 (difference x0 x0)) = x1, 0
+(difference x0 (difference x0 x0)) = x0, 0
+(difference x1 x1) = (difference x0 x0), 0
+(plus x1 x0) = (plus x0 x1), 0
+(difference x1 (plus x0 x1)) = (difference x0 x0), 0
+(difference x0 (plus x0 x1)) = (difference x0 x0), 0
+(difference (plus (difference x0 x0) x1) x2) = (difference x1 x2), 0
+(difference (plus (difference x0 x0) x2) x0) = (difference x2 x0), 0
+(difference (plus x0 (difference x0 x0)) x2) = (difference x0 x2), 0
+(difference (plus x0 (plus x1 x2)) x1) = (plus x0 x2), 1
+(difference (plus x0 (plus x1 x2)) x2) = (plus x0 x1), 0
+(difference x0 (difference x0 (difference x0 x1))) = (difference x0 x1), 0
+(difference x0 (plus x1 (difference x0 x1))) = (difference x0 x0), 0
+(difference x1 (plus x0 (difference x0 x0))) = (difference x1 x0), 0
+(difference x2 (plus (difference x0 x0) x1)) = (difference x2 x1), 0
+(difference x0 (plus (difference x0 x0) x1)) = (difference x0 x1), 0
+(difference x2 (plus x0 (plus x1 x2))) = (difference x0 x0), 0
+(difference x0 (plus x1 (plus x0 x2))) = (difference x0 x0), 0
+(difference (plus x0 x2) (plus x0 x1)) = (difference x2 x1), 0
+(difference (plus x1 x2) (plus x0 x1)) = (difference x2 x0), 0
+(difference (plus x0 x2) (plus x1 x2)) = (difference x0 x1), 0
+(difference (plus x0 x0) (plus x0 x1)) = (difference x0 x1), 0
+(difference (plus x0 x1) (plus x0 x0)) = (difference x1 x0), 0
+(difference (plus x0 x1) (plus x1 x1)) = (difference x0 x1), 0
+(difference (difference x0 x1) x2) = (difference x0 (plus x1 x2)), 0
+(difference x1 (difference x1 x0)) = (difference x0 (difference x0 x1)), 0
+(difference (plus (difference x0 x1) x2) x0) = (difference x2 (difference x0 (difference x0 x1))), 0
+(difference (plus x0 (difference x1 x0)) x2) = (difference (plus x1 (difference x0 x1)) x2), 0
+(difference (plus x0 (difference x1 x2)) x1) = (difference x0 (difference x1 (difference x1 x2))), 0
+(difference (plus x1 (plus x0 x2)) x3) = (difference (plus x0 (plus x1 x2)) x3), 0
+(difference (plus (plus x0 x1) x2) x3) = (difference (plus x0 (plus x1 x2)) x3), 0
+(difference x1 (plus (difference x1 x0) x2)) = (difference x0 (plus (difference x0 x1) x2)), 0
+(difference x0 (difference (plus x0 x2) x1)) = (difference x0 (difference x0 (difference x1 x2))), 0
+(difference x0 (difference x0 (difference x2 x1))) = (difference x0 (difference (plus x0 x1) x2)), 0
+(difference x2 (plus x1 (difference x2 x0))) = (difference x0 (plus x1 (difference x0 x2))), 0
+(difference x0 (plus x1 (difference x2 x1))) = (difference x0 (plus x2 (difference x1 x2))), 0
+(difference x0 (plus x2 (plus x1 x3))) = (difference x0 (plus x1 (plus x2 x3))), 0
+(difference x0 (plus (plus x1 x2) x3)) = (difference x0 (plus x1 (plus x2 x3))), 0
+(difference (plus x0 x2) (difference x2 x1)) = (difference (plus x0 x1) (difference x1 x2)), 0
+(difference x1 (plus x0 (difference x1 (plus x0 x2)))) = (difference x1 (plus x0 (difference x1 x2))), 0
+(difference (plus x0 x1) x0) = x1, 0
+(difference (plus x0 x1) x1) = x0, 0
+(difference x1 (difference x0 x0)) = x1, 0
+(difference x0 (difference x0 x0)) = x0, 0
+(difference x1 x1) = (difference x0 x0), 0
+(plus x1 x0) = (plus x0 x1), 0
+(difference x0 (succ_nat x0)) = (difference x0 x0), 0
+(difference (succ_nat (plus x0 x1)) x0) = (succ_nat x1), 0
+(difference (succ_nat (plus x0 x1)) x1) = (succ_nat x0), 1
+(difference x0 (succ_nat (succ_nat x0))) = (difference x0 x0), 0
+(difference (succ_nat x0) (succ_nat x1)) = (difference x0 x1), 0
+(difference x1 (plus x0 x1)) = (difference x0 x0), 0
+(difference x0 (plus x0 x1)) = (difference x0 x0), 0
+(difference (succ_nat x0) x0) = (succ_nat (difference x0 x0)), 0
+(plus x0 (succ_nat x1)) = (succ_nat (plus x0 x1)), 0
+(plus (succ_nat x0) x1) = (plus x0 (succ_nat x1)), 0
+(difference x1 (succ_nat (plus x0 x1))) = (difference x0 x0), 0
+(difference x0 (succ_nat (plus x0 x1))) = (difference x0 x0), 0
+(difference (succ_nat (succ_nat (plus x0 x1))) x0) = (succ_nat (succ_nat x1)), 0
+(difference (succ_nat (succ_nat (plus x0 x1))) x1) = (succ_nat (succ_nat x0)), 0
+(difference (plus (difference x0 x0) x1) x2) = (difference x1 x2), 0
+(difference (plus (difference x0 x0) x2) x0) = (difference x2 x0), 0
+(difference (plus x0 (difference x0 x0)) x2) = (difference x0 x2), 0
+(difference (plus x0 (plus x1 x2)) x1) = (plus x0 x2), 0
+(difference (plus x0 (plus x1 x2)) x2) = (plus x0 x1), 0
+(difference x1 (succ_nat (succ_nat (plus x0 x1)))) = (difference x0 x0), 0
+(difference x0 (succ_nat (succ_nat (plus x0 x1)))) = (difference x0 x0), 0
+(difference x0 (difference x0 (difference x0 x1))) = (difference x0 x1), 0
+(difference x0 (plus x1 (difference x0 x1))) = (difference x0 x0), 0
+(difference x1 (plus x0 (difference x0 x0))) = (difference x1 x0), 0
+(difference x2 (plus (difference x0 x0) x1)) = (difference x2 x1), 0
+(difference x0 (plus (difference x0 x0) x1)) = (difference x0 x1), 0
+(difference x2 (plus x0 (plus x1 x2))) = (difference x0 x0), 0
+(difference x0 (plus x1 (plus x0 x2))) = (difference x0 x0), 0
+(difference (plus x0 x2) (plus x0 x1)) = (difference x2 x1), 0
+(difference (plus x1 x2) (plus x0 x1)) = (difference x2 x0), 0
+(difference (plus x0 x2) (plus x1 x2)) = (difference x0 x1), 0
+(difference (plus x0 x0) (plus x0 x1)) = (difference x0 x1), 0
+(difference (plus x0 x1) (plus x0 x0)) = (difference x1 x0), 0
+(difference (plus x0 x1) (plus x1 x1)) = (difference x0 x1), 0
+(difference (difference x0 x1) x2) = (difference x0 (plus x1 x2)), 0
+(difference x1 (difference x1 x0)) = (difference x0 (difference x0 x1)), 0
+(not (not x1)) = x1, 0
+(difference Z x0) = Z, 0
+(difference x0 Z) = x0, 0
+(difference x0 x0) = Z, 0
+(difference (difference x0 x2) x0) = Z, 0
+(lessp x0 Z) = (lessp Z Z), 0
+(lessp x0 x0) = (lessp x0 Z), 0
 (equal_nat x0 x0) = (equal_nat Z Z), 0
 (equal_nat x2 x0) = (equal_nat x0 x2), 0
-(plus x2 x0) = (plus x0 x2), 0
-(equal_nat Z (plus x0 x0)) = (equal_nat Z x0), 0
-(equal_nat x2 (plus x0 x2)) = (equal_nat Z x0), 1
-(equal_nat x0 (plus x0 x0)) = (equal_nat Z x0), 0
-(equal_nat x0 (plus x0 (plus x2 x2))) = (equal_nat Z x2), 0
-(equal_nat (plus x0 x4) (plus x2 x4)) = (equal_nat x0 x2), 0
-(equal_nat (plus x0 x0) (plus x2 x2)) = (equal_nat x0 x2), 0
-(equal_nat (plus x0 x0) (plus x0 x2)) = (equal_nat x0 x2), 0
-(equal_nat (plus x0 x2) (plus x2 x2)) = (equal_nat x0 x2), 0
-(plus x2 (plus x0 x4)) = (plus x0 (plus x2 x4)), 0
-(plus (plus x0 x2) x4) = (plus x0 (plus x2 x4)), 0
-(equal_nat Z (plus x0 (plus x0 x2))) = (equal_nat Z (plus x0 x2)), 0
-(equal_nat Z (plus x0 (plus x2 x2))) = (equal_nat Z (plus x0 x2)), 0
-(equal_nat x2 (plus x0 (plus x2 x4))) = (equal_nat Z (plus x0 x4)), 0
-(equal_nat x4 (plus x0 (plus x2 x4))) = (equal_nat Z (plus x0 x2)), 0
-(equal_nat x0 (plus x0 (plus x0 x2))) = (equal_nat Z (plus x0 x2)), 0
-(lessp x1 x1) = (lessp x0 x0)
-(lessp x1 (plus x0 x1)) = true
-(lessp x0 (plus x0 x1)) = true
-(times x1 x0) = (times x0 x1)
-(plus x1 x0) = (plus x0 x1)
-(lessp x3 (plus x1 (times x0 x3))) = true
-(lessp x0 (plus (times x0 x0) x1)) = true
-(lessp x1 (plus x0 (plus x1 x3))) = true
-(lessp x3 (plus x0 (plus x1 x3))) = true
-(lessp (times x0 x1) x0) = (lessp x0 x0)
-(lessp (times x0 x1) x1) = (lessp x0 x0)
-(lessp (plus x0 x1) x0) = (lessp x0 x0)
-(lessp (plus x0 x1) x1) = (lessp x0 x0)
-(lessp (plus (times x0 x1) x3) x1) = (lessp x0 x0)
-(lessp (plus x0 (times x1 x3)) x3) = (lessp x0 x0)
-(lessp (plus x0 (plus x1 x5)) x3) = (lessp x0 x0)
-(lessp (plus x0 (plus x0 x1)) x3) = (lessp x0 x0)
-(lessp (plus x0 (plus x1 x1)) x3) = (lessp x0 x0)
-(lessp (plus x0 (plus x1 x3)) x1) = (lessp x0 x0)
-(lessp (plus x0 (plus x1 x3)) x3) = (lessp x0 x0)
-(lessp (times x0 (times x1 x3)) x3) = (lessp x0 x0)
-(lessp x1 (times x0 x1)) = (lessp x0 (times x0 x0))
-(lessp x1 (times x0 x0)) = (lessp x0 (times x0 x0))
-(lessp x0 (times x1 x1)) = (lessp x0 (times x0 x1))
-(lessp (times x1 x3) (times x0 x1)) = (lessp x3 x0)
-(lessp (times x0 x1) (times x0 x3)) = (lessp x1 x3)
-(lessp (times x0 x1) (times x1 x3)) = (lessp x0 x3)
-(lessp (plus x0 x3) (plus x0 x1)) = (lessp x3 x1)
-(lessp (plus x1 x3) (plus x0 x1)) = (lessp x3 x0)
-(lessp (plus x0 x3) (plus x1 x3)) = (lessp x0 x1)
-(lessp (plus x0 x0) (plus x0 x1)) = (lessp x0 x1)
-(lessp (plus x0 x1) (plus x0 x0)) = (lessp x1 x0)
-(lessp (plus x0 x1) (plus x1 x1)) = (lessp x0 x1)
-(plus x1 (plus x0 x3)) = (plus x0 (plus x1 x3))
-(plus (plus x0 x1) x3) = (plus x0 (plus x1 x3))
-(times x1 (times x0 x3)) = (times x0 (times x1 x3))
-(times (times x0 x1) x3) = (times x0 (times x1 x3))
-(times (plus x0 x0) x1) = (times x0 (plus x1 x1))
-(lessp (plus x1 (times x0 x1)) x3) = (lessp (plus x0 x1) x3)
-(lessp (plus x0 (times x0 x1)) x3) = (lessp (plus x0 x1) x3)
-(lessp (plus x0 (times x1 x1)) x3) = (lessp (plus x0 x1) x3)
-(lessp (times x0 (times x0 x1)) x3) = (lessp (times x0 x1) x3)
-(lessp x0 (plus x1 (times x1 x1))) = (lessp x0 (plus x1 x1))
-(lessp x0 (times x1 (times x1 x1))) = (lessp x0 (times x1 x1))
-(times x0 (plus x1 x1)) = (plus (times x0 x1) (times x0 x1))
-(times (plus x0 x1) x3) = (plus (times x0 x3) (times x1 x3))
-(times x1 (plus x0 x3)) = (plus (times x0 x1) (times x1 x3))
-(lessp x3 (plus x0 (plus x1 x1))) = (lessp x3 (plus x0 (plus x0 x1)))
-(lessp x1 (times x0 (times x1 x1))) = (lessp x0 (times x0 (times x0 x1)))
-(lessp (times x3 x3) (times x0 x1)) = (lessp (plus x3 x3) (plus x0 x1))
-(times x0 (times x1 (plus x3 x3))) = (times x0 (plus (times x1 x3) (times x1 x3)))
-(times x1 (plus (times x0 x3) (times x0 x3))) = (times x0 (plus (times x1 x3) (times x1 x3)))
+(equal_nat Z x0) = (not (lessp Z x0)), 0
+(equal_nat Z Z) = (not (lessp Z Z)), 0
+(difference (difference (difference x4 x0) x2) x4) = Z, 0
+(lessp x0 (difference x0 x2)) = (lessp Z Z), 0
+(equal_nat Z (difference x0 x2)) = (not (lessp x2 x0)), 1
+(lessp (difference x0 (difference x0 x2)) x0) = (lessp x2 x0), 0
+(lessp (difference x0 (difference x0 x2)) x2) = (lessp x0 x2), 0
+(lessp (difference x2 x6) (difference x4 x0)) = (lessp x0 x4), 0
+(lessp x4 (difference (difference x4 x0) x2)) = (lessp Z Z), 0
+(difference x0 (difference x0 (difference x0 x2))) = (difference x0 x2), 0
+(not (lessp x0 (difference x2 x0))) = (not (lessp x0 x2)), 0
+(lessp x4 (difference x0 (difference x2 x0))) = (lessp x4 x0), 0
+(lessp (difference x2 x0) x2) = (lessp (difference x0 x2) x0), 0
+(lessp x0 (difference x2 x4)) = (lessp x4 (difference x2 x0)), 0
+(difference (difference x0 x4) x2) = (difference (difference x0 x2) x4), 0
+(difference x2 (difference x2 x0)) = (difference x0 (difference x0 x2)), 0
+(equal_nat x2 (difference x2 x0)) = (equal_nat x0 (difference x0 x2)), 0
+(equal_nat x2 (difference x0 (difference x0 x2))) = (not (lessp x0 x2)), 0
+(equal_nat x0 (difference x0 x2)) = (not (lessp (difference x0 x2) x0)), 0
+(not (lessp (difference x0 (difference x0 x2)) x0)) = (not (lessp x2 x0)), 0
+(lessp (difference x0 x2) (difference x4 x2)) = (lessp x2 (difference x4 x0)), 0
+(equal_nat x0 (difference (difference x0 x2) x2)) = (not (lessp (difference x0 x2) x0)), 0
+(lessp (difference x4 x2) (difference x4 x0)) = (lessp (difference x2 x4) (difference x2 x0)), 0
+(difference (difference x4 x2) (difference x4 x0)) = (difference (difference x0 x2) (difference x0 x4)), 0
+(difference (difference x0 x4) (difference x2 x4)) = (difference (difference x0 x2) (difference x4 x2)), 0

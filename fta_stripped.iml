@@ -390,6 +390,7 @@ lemma discover__1025 x2 x1 = ((plus x1 x2) = x1) = (x2 = Z) [@@rewrite]  [@@auto
 (* 188 *)
 let cond_188 x1 x2 = x1 <> Z && x2 <> Z;;
 (* Pretty deep nesting on this one... *)
+(* discover db ~condition:"cond_188" ~verbose:true ~desired_pattern:"lessp (_,(plus (_,(times (_,_))))" ~kb_completion:false ["true";"lessp";"plus";"times"];; *)
 (* lemma discover__8 x3 x1 x2 = (cond_188 x1 x2) ==> (lessp x3 (plus x2 (times x1 x3))) = true   [@@auto];; *)
 lemma discover__826 x3 x1 x2 = x1 <> Z && x2 <> Z ==> (lessp x3 (plus x2 (times x1 x3))) [@@rewrite]  [@@auto];;
 
@@ -473,14 +474,19 @@ let rec gcd x y =
 ;;
 
 (* 197 *)
+let cond_197 x1 x2 = lessp x2 x1;;
+(* discover db ~condition:"cond_197" ["false";"lessp"];; *)
 (* lemma discover__0 x1 x2 = (not_lessp_y_x x1 x2) ==> (lessp x1 x2) = false   [@@auto] *)
 lemma discover__027 x1 x2 = lessp x2 x1 ==> not (lessp x1 x2)  [@@auto] [@@rewrite];;
 
 (* 198 *)
+(* discover db ["gcd";];; *)
 lemma discover__128 x0 x1 = (gcd x1 x0) = (gcd x0 x1) [@@rewrite] [@@permutative] [@@auto];;
 
 (* 202 *)
 (* needed rewrite_bound_terms=false *)
+let cond_202 x0 x1 = x1 <> Z && lessp x1 x0;;
+(* discover db ~condition:"cond_202" ~verbose:true ~rewrite_bound_terms:false ~kb_completion:false ["true";"lessp";"remainder"];; *)
 (* lemma discover__5 x3 x4 = (cond_202 x3 x4) ==> (lessp (remainder x3 x4) x3) = true   [@@auto] *)
 lemma discover_inst_2025 x3 x4 = x4 <> Z && lessp x4 x3 ==> (lessp (remainder x3 x4) x3)  [@@auto] [@@rewrite];;
 (* lemma recursion_by_remainder x y =
@@ -490,6 +496,8 @@ lemma discover_inst_2025 x3 x4 = x4 <> Z && lessp x4 x3 ==> (lessp (remainder x3
 
 (* Discover got this except applied a commutativity of plus *)
 (* 208 *)
+(* discover db ~verbose:true ~kb_completion:false ["difference";"plus";];; *)
+
 (* lemma discover__0 x2 x1 = (difference (plus x1 x2) x2) = x1 [@@rewrite]  [@@auto];; *)
 (* lemma discover__029 x2 x1 = (difference (plus x2 x1) x2) = x1 [@@rewrite]  [@@auto];; *)
 (* What?  This one works but the above doesn't?  It's just a renaming of variables... *)
@@ -499,6 +507,8 @@ lemma discover__029 x1 x2 = (difference (plus x1 x2) x1) = x2 [@@rewrite]  [@@au
 lemma discover__1330 x1 x3 x2 = (difference (plus x1 x3) (plus x1 x2)) = (difference x3 x2) [@@rewrite]  [@@auto];;
 
 (* 210 - without the hint, we induct following times *)
+(* discover db ~verbose:true ~kb_completion:false ["difference";"times";];; *)
+
 (* lemma discover__18 x3 x1 x2 = (times x1 (difference x3 x2)) = (difference (times x1 x3) (times x1 x2)) [@@rewrite]  [@@auto];; *)
 lemma discover__1831 x3 x1 x2 = (difference (times x1 x3) (times x1 x2)) = (times x1 (difference x3 x2)) [@@rewrite]  [@@induct functional difference] [@@auto];;
 
@@ -508,9 +518,13 @@ let divides x y =
 ;;
 
 (* 212 *)
+(* discover db ~verbose:true ~kb_completion:false ["Z";"times";"remainder"];; *)
+
 lemma discover__532 x0 x2 = (remainder (times x0 x2) x2) = Z [@@rewrite]  [@@auto];;
 
 (* 213 *)
+(* discover db ~verbose:true ~desired_pattern:"difference (plus _ (plus _ _) _)" ~kb_completion:false ["plus";"difference";];; *)
+
 (* Again, with 208 by renaming variables we are able to prove the discover lemma... *)
 (* lemma discover__2133 x1 x0 x2 = (difference (plus x0 (plus x1 x2)) x1) = (plus x0 x2) [@@rewrite]  [@@auto];; *)
 (* lemma discover__2133 x0 x1 x2 = (difference (plus x0 (plus x1 x2)) x1) = (plus x0 x2) [@@rewrite]  [@@auto];; *)
