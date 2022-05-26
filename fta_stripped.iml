@@ -603,6 +603,7 @@ lemma divides_plus_rewrite_commuted x y z =
 
 (* 221 *)
 (* lemma discover__1835 x1 x2 = (not (lessp x2 x1)) = (not (lessp Z (difference x1 x2))) [@@rewrite]  [@@auto];; *)
+(* discover db ~verbose:true ~kb_completion:false ["not";"equal_nat";"Z";"lessp";"difference";];; *)
 
 lemma lessp_difference2 x y =
   (difference x y = Z) = (not (lessp y x))
