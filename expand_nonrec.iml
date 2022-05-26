@@ -1,1 +1,41 @@
-#debug on;;
+#max_induct 1;;
+
+type node = int;;
+type graph = (node * node list) list;;
+
+(* Using this instead of the all_nodes above removes the hang *)
+let all_nodes g : node list =
+    List.map (fun (x : node * node list) -> fst x) g;;
+
+verify (fun x -> all_nodes x = all_nodes2 x);;
+let x : (node * node list) list = [("!0!", []); ("!1!", [])];;
+let n1 = all_nodes x;;
+let n2 = all_nodes2 x;;
+
+let subset l1 l2 =
+    List.for_all (fun x -> List.mem x l2) l1;;
+
+   (* lemma subset_thm x l1 l2 = List.mem x l1 && subset l1 l2 ==> List.mem x l2 [@@auto];; *)
+
+   let rec no_duplicates l =
+       match l with
+       | [] -> true
+       | x :: xs -> if List.mem x xs then false else no_duplicates xs;;
+
+   let is_graph1 all_nodes g =
+       List.for_all
+           (
+               fun x ->
+               List.mem (fst x) all_nodes &&
+               subset (snd x) all_nodes &&
+               no_duplicates (snd x)
+           ) g;;
+
+
+   (* list is actually a graph  *)
+   let is_graph (g : graph) =
+          if g = [] then false else
+          let all_nodes = all_nodes g in
+          no_duplicates all_nodes && is_graph1 all_nodes g;;
+
+lemma cons_graphs_lem2 (x : node*node list) (g : graph) = subset (snd x) (fst x :: (all_nodes g)) && is_graph g ==> is_graph (x :: g);;

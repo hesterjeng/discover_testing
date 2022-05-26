@@ -1,5 +1,6 @@
-type node = string;;
-type graph = (node * node list) list;;
+type node = int;;
+type node_with_edges = (node * node list)
+type graph = node_with_edges list;;
 type path = node list;;
 
 #max_induct 1;;
@@ -7,17 +8,17 @@ type path = node list;;
 
 let empty : graph = List.empty;;
 
+let key_of (x : node_with_edges) = fst x;;
+
+let edges_of (x : node_with_edges) = snd x;;
+
 #require "imandra-discover-bridge";;
 open Imandra_discover_bridge.User_level;;
 
-let rec all_nodes_ (g : graph) acc =
-    match g with
-    | [] -> acc
-    | x :: xs ->  all_nodes_ xs (fst x :: acc);;
+let all_nodes g : node list =
+    List.map (fun (x : node_with_edges) -> fst x) g;;
 
-let all_nodes g = all_nodes_ g [];;
-
-let graph_mem x g = List.mem x (all_nodes g);;
+let graph_mem (x : node) (g : graph) = List.mem x (all_nodes g);;
 
 let rec neighbors (n : node) (g : graph) =
     match g with
@@ -31,8 +32,32 @@ let rec no_duplicates l =
     | [] -> true
     | x :: xs -> if List.mem x xs then false else no_duplicates xs;;
 
-let subset l1 l2 =
-    List.for_all (fun x -> List.mem x l2) l1;;
+(* let subset l1 l2 =
+       let member_of_larger x = List.mem x l2 in
+       List.for_all member_of_larger l1;; *)
+
+let rec subset l1 l2 =
+    match l1 with
+    | [] -> true
+    | x :: xs -> if not (List.mem x l2) then false else subset xs l2;;
+
+lemma subset_cons x y l1 = List.mem x l1 ==> List.mem x (y :: l1) [@@auto];;
+
+lemma subset_sing x y l1 = subset x l1 ==> subset x (y :: l1) [@@fc] [@@auto];;
+
+(* lemma subset_cons_sing x = subset [x] (x :: []) [@@auto];;
+
+   lemma subset_hd l = l <> [] ==> subset [List.hd l] l [@@auto];;
+
+   lemma subset_tail l = l <> [] ==> subset (List.tl l) l [@@auto];; *)
+
+lemma subset_cons_sing2 x l = subset l (x :: l) [@@auto] [@@apply subset_sing];;
+
+lemma subset_id x0 = subset x0 x0 [@@auto];;
+
+lemma sing_mem x x1 x2 = List.mem x x1 && subset x1 x2 ==> List.mem x x2 [@@auto];;
+
+lemma subset_trans l1 l2 l3 = subset l1 l2 && subset l2 l3 [@trigger] ==> subset l1 l3 [@@auto] [@@fc];;
 
 let is_graph1 all_nodes g =
     List.for_all
@@ -45,7 +70,7 @@ let is_graph1 all_nodes g =
 
 
 let is_graph (g : graph) =
-    if g = [] then false else
+    if g = [] then true else
     let all_nodes = all_nodes g in
     no_duplicates all_nodes && is_graph1 all_nodes g;;
 
@@ -79,28 +104,33 @@ let path_from_to p a b g =
    lemma discover__4 x13 x14 x15 x10 x0 = (is_graph x0) ==> (path_from_to x13 x10 x14 x15) = (graph_mem x10 x0)   [@@auto] *)
 
 (* discover db ~verbose:true ~iterations:3i ~condition:"is_graph" ~universal_condition:true ["last"; "path_from_to"; "is_path"; "is_graph"; "subset"; "neighbors"; "all_nodes"; "graph_mem"];; *)
-(* discover db ~iterations:2i ["last"; "path_from_to"; "is_path"; "is_graph"; "subset"; "neighbors"; "all_nodes"; "graph_mem"];; *)
 
 let all_graphs g1 g2 g3 = is_graph g1 && is_graph g2;;
-let cons_graphs (x : node*node list) (g : graph) : graph = x :: g;;
+let cons_graphs (x : node_with_edges) (g : graph) : graph = x :: g;;
 let append_graphs (g1 : graph) (g2 : graph) = g1 @ g2;;
+
+(* This isn't working well... investigate *)
+(* discover db ~verbose:true ["(&&)";"false";"true";"append_graphs";"cons_graphs";"last"; "path_from_to"; "is_path"; "is_graph"; "subset"; "neighbors"; "all_nodes"; "graph_mem"];; *)
+(* This isn't working well either, can't get subset transitivity... *)
+(* discover db ~iterations:2i ~verbose:true ~kb_completion:false ~rewrite_terms:false ~rewrite_schemas:false ~only_discovered:true ["(&&)";"true";"subset"]; *)
+
+lemma gcons x y g = graph_mem x g ==> graph_mem x (cons_graphs y g) [@@auto];;
 
 (* This doesn't work because a lot of the time we aren't able to generate random graphs *)
 (* discover db ~verbose:true ~condition:"is_graph" ~kb_completion:false ~rewrite_schemas:false ~rewrite_terms:false ~universal_condition:true ["is_graph";"cons_graphs";"append_graphs";"true"];; *)
 
-let x_dummy : (node * node list) = ("!1!", []);;
-let g_dummy : (node * node list) list = [("!1!", [])];;
+lemma cons_graphs_lem2 (x : node_with_edges) (g : graph) =
+    no_duplicates (edges_of x) &&
+    not (graph_mem (key_of x) g) &&
+    subset (edges_of x) (key_of x :: (all_nodes g)) &&
+    is_graph g ==> is_graph (cons_graphs x g);;
 
-(* This should be the case but it's not working for some reason *)
-verify (is_graph g_dummy);;
-verify (is_graph (x_dummy :: g_dummy));;
+(* Hang *)
+(* lemma cons_graphs_lem2 (x : node*node list) (g : graph) = subset (snd x) (fst x :: (all_nodes g)) && is_graph g ==> is_graph (x :: g) [@@auto];; *)
 
-(* lemma cons_graphs_lem g x xs = is_graph g && g = x :: xs ==> is_graph xs [@@auto];; *)
-lemma cons_graphs_lem2 (x : node*node list) (g : graph) = subset (snd x) (fst x :: (all_nodes g)) && is_graph g ==> is_graph (x :: g);;
+(* lemma graph_mem_trash g = is_graph g ==> graph_mem (fst (List.hd g)) g [@@auto];;
 
-lemma graph_mem_trash g = is_graph g ==> graph_mem (fst (List.hd g)) g [@@auto];;
-
-lemma graph_mem_trash3 g = is_graph g ==> List.for_all (fun x -> graph_mem (fst x) g) g [@@induct structural g];;
+   lemma graph_mem_trash3 g = is_graph g ==> List.for_all (fun x -> graph_mem (fst x) g) g [@@induct structural g];; *)
 
 (* lemma graph_mem_trash2 g = is_graph g ==>
        let first = List.hd g in
