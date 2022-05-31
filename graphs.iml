@@ -15,7 +15,7 @@ let edges_of (x : node_with_edges) = snd x;;
 #require "imandra-discover-bridge";;
 open Imandra_discover_bridge.User_level;;
 
-let all_nodes g : node list =
+let all_nodes (g: graph) : node list =
     List.map (fun (x : node_with_edges) -> fst x) g;;
 
 let graph_mem (x : node) (g : graph) = List.mem x (all_nodes g);;
@@ -32,10 +32,6 @@ let rec no_duplicates l =
     | [] -> true
     | x :: xs -> if List.mem x xs then false else no_duplicates xs;;
 
-(* let subset l1 l2 =
-       let member_of_larger x = List.mem x l2 in
-       List.for_all member_of_larger l1;; *)
-
 let rec subset l1 l2 =
     match l1 with
     | [] -> true
@@ -45,28 +41,26 @@ lemma subset_cons x y l1 = List.mem x l1 ==> List.mem x (y :: l1) [@@auto];;
 
 lemma subset_sing x y l1 = subset x l1 ==> subset x (y :: l1) [@@fc] [@@auto];;
 
-(* lemma subset_cons_sing x = subset [x] (x :: []) [@@auto];;
-
-   lemma subset_hd l = l <> [] ==> subset [List.hd l] l [@@auto];;
-
-   lemma subset_tail l = l <> [] ==> subset (List.tl l) l [@@auto];; *)
-
-lemma subset_cons_sing2 x l = subset l (x :: l) [@@auto] [@@apply subset_sing];;
-
 lemma subset_id x0 = subset x0 x0 [@@auto];;
 
-lemma sing_mem x x1 x2 = List.mem x x1 && subset x1 x2 ==> List.mem x x2 [@@auto];;
+lemma sing_mem x x1 x2 = List.mem x x1 && subset x1 x2 ==> List.mem x x2 [@@auto] [@@fc];;
 
-lemma subset_trans l1 l2 l3 = subset l1 l2 && subset l2 l3 [@trigger] ==> subset l1 l3 [@@auto] [@@fc];;
+lemma subset_cons_sing2 x l = subset l (x @ l) [@@induct structural x] [@@apply subset_id l];;
 
-let is_graph1 all_nodes g =
-    List.for_all
+lemma subset_cons_sing3 x l = subset l (x :: l) [@@auto] [@@apply subset_cons_sing2 [x] l];;
+
+lemma subset_trans l1 l2 l3 = subset l1 l2 && subset l2 l3 ==> subset l1 l3 [@@auto] [@@fc];;
+
+let rec is_graph1 all_nodes g =
+    match g with
+    | [] -> true
+    | g1 :: gs ->
         (
-            fun x ->
-            List.mem (fst x) all_nodes &&
-            subset (snd x) all_nodes &&
-            no_duplicates (snd x)
-        ) g;;
+            List.mem (fst g1) all_nodes &&
+            subset (snd g1) all_nodes &&
+            no_duplicates (snd g1) &&
+            is_graph1 all_nodes gs
+        );;
 
 
 let is_graph (g : graph) =
@@ -114,23 +108,17 @@ let append_graphs (g1 : graph) (g2 : graph) = g1 @ g2;;
 (* This isn't working well either, can't get subset transitivity... *)
 (* discover db ~iterations:2i ~verbose:true ~kb_completion:false ~rewrite_terms:false ~rewrite_schemas:false ~only_discovered:true ["(&&)";"true";"subset"]; *)
 
+
 lemma gcons x y g = graph_mem x g ==> graph_mem x (cons_graphs y g) [@@auto];;
 
 (* This doesn't work because a lot of the time we aren't able to generate random graphs *)
 (* discover db ~verbose:true ~condition:"is_graph" ~kb_completion:false ~rewrite_schemas:false ~rewrite_terms:false ~universal_condition:true ["is_graph";"cons_graphs";"append_graphs";"true"];; *)
 
-lemma cons_graphs_lem2 (x : node_with_edges) (g : graph) =
-    no_duplicates (edges_of x) &&
-    not (graph_mem (key_of x) g) &&
-    subset (edges_of x) (key_of x :: (all_nodes g)) &&
-    is_graph g ==> is_graph (cons_graphs x g);;
-
-(* Hang *)
-(* lemma cons_graphs_lem2 (x : node*node list) (g : graph) = subset (snd x) (fst x :: (all_nodes g)) && is_graph g ==> is_graph (x :: g) [@@auto];; *)
-
-(* lemma graph_mem_trash g = is_graph g ==> graph_mem (fst (List.hd g)) g [@@auto];;
-
-   lemma graph_mem_trash3 g = is_graph g ==> List.for_all (fun x -> graph_mem (fst x) g) g [@@induct structural g];; *)
+(* lemma cons_graphs_lem2 (x : node_with_edges) (g : graph) =
+       no_duplicates (edges_of x) &&
+       not (graph_mem (key_of x) g) &&
+       subset (edges_of x) (key_of x :: (all_nodes g)) &&
+       is_graph g ==> is_graph (cons_graphs x g);; *)
 
 (* lemma graph_mem_trash2 g = is_graph g ==>
        let first = List.hd g in
@@ -139,18 +127,49 @@ lemma cons_graphs_lem2 (x : node_with_edges) (g : graph) =
        let a_neighb = List.hd neighbors in
        graph_mem node g && graph_mem a_neighb g;; *)
 
-(* This one causes a hang!*)
-(* lemma mem_is_in_graph x c g = List.mem x (neighbors c g) ==> graph_mem x g [@@auto];; *)
+(* let count_non_members g stack =
+     let all_nodes = all_nodes g in
+     let rec aux all_n acc =
+       match all_n with
+       | [] -> acc
+       | x :: xs -> if List.mem x stack then aux xs acc else aux xs (acc+1) in
+     aux all_nodes 0;; *)
 
-(* This one causes a hang!*)
-(* lemma mem_is_in_graph x c g = is_graph g && List.mem x (neighbors c g) ==> graph_mem x g [@@induct functional neighbors];; *)
+let count_non_members g stack =
+    let all_nodes = all_nodes g in
+    let f x acc = if List.mem x stack then acc else acc+1 in
+    List.fold_right f ~base:0 all_nodes;;
 
-(* This one causes a hang!*)
-(* lemma neighbors_are_in_graph g = is_graph g ==> List.for_all (fun x -> graph_mem x g) (all_nodes g) [@@auto];; *)
+lemma count_non_members_geq_0 g stack = count_non_members g stack >= 0 [@@auto];;
 
-(* discover db ["List.for_all"; "graph_mem"; "neighbors"];; *)
+let adm_helper stack x acc = if List.mem x stack then acc else acc + 1;;
 
-(* let rec find_next_step (c : node) (stack : path) (b : node) (g : graph) =
+lemma adm_fns_lemma gen_2 stack =
+    List.fold_right (adm_helper stack) ~base:0 gen_2 >= (-2) [@@rw] [@@auto];;
+
+(* #h adm_fns_lemma;; *)
+
+(* lemma adm_fns_lemma2 nbs1 stack gen_2 = List.fold_right
+        ((fun stack x acc -> if List.mem x stack then acc else acc + 1)
+         (nbs1 :: stack))
+        ~base:0 gen_2 >= (-2) [@@rw] [@@auto];; *)
+
+let find_next_step_measure g stack rmder =
+  Ordinal.pair
+      (Ordinal.of_int (count_non_members g stack + 1))
+      (Ordinal.of_int (List.length rmder));;
+
+   let rec find_next_step (nbs : node list) (stack : path) (b : node) (g : graph) =
+       if List.mem b nbs then Some (List.rev (b ::stack)) else
+       match nbs with
+       | [] -> None
+       | x :: xs ->
+           if List.mem x stack then find_next_step xs stack b g else
+           let temp = find_next_step (neighbors x g) (x :: stack) b g in
+           if Option.is_none temp then find_next_step xs stack b g else temp
+           [@@measure find_next_step_measure g stack nbs] [@@auto];;
+
+(* let rec find_next_step_old (c : node) (stack : path) (b : node) (g : graph) =
        let neighbors = List.filter (fun x -> not (List.mem x stack)) (neighbors c g) in
        if List.is_empty neighbors then None else
        if List.mem b neighbors then Some (List.rev (b :: stack)) else
@@ -159,10 +178,10 @@ lemma cons_graphs_lem2 (x : node_with_edges) (g : graph) =
            | [] -> None
            | x :: xs -> let temp = find_next_step x (x :: stack) b g in
                         if Option.is_some temp then temp else aux xs in
-       aux neighbors [@@auto];;
+       aux neighbors [@@measure find_next_step_measure g stack nbs] [@@auto];; *)
 
-      let find_path a b g =
-          let all_nodes = all_nodes g in
-          if not graph_mem a g then None else
-          if not graph_mem b g then None else
-          find_next_step a [] b g;; *)
+(* let find_path a b g =
+       let all_nodes = all_nodes g in
+       if not graph_mem a g then None else
+       if not graph_mem b g then None else
+       find_next_step a [] b g;; *)

@@ -3,6 +3,14 @@
 type node = int;;
 type graph = (node * node list) list;;
 
+
+let rec all_nodes_ (g : graph) acc =
+    match g with
+    | [] -> acc
+    | x :: xs ->  all_nodes_ xs (fst x :: acc);;
+
+let all_nodes g = all_nodes_ g [];;
+
 (* Using this instead of the all_nodes above removes the hang *)
 let all_nodes g : node list =
     List.map (fun (x : node * node list) -> fst x) g;;
@@ -12,10 +20,10 @@ let x : (node * node list) list = [("!0!", []); ("!1!", [])];;
 let n1 = all_nodes x;;
 let n2 = all_nodes2 x;;
 
-let subset l1 l2 =
-    List.for_all (fun x -> List.mem x l2) l1;;
+(* let subset l1 l2 =
+       List.for_all (fun x -> List.mem x l2) l1;;
 
-   (* lemma subset_thm x l1 l2 = List.mem x l1 && subset l1 l2 ==> List.mem x l2 [@@auto];; *)
+   (\* lemma subset_thm x l1 l2 = List.mem x l1 && subset l1 l2 ==> List.mem x l2 [@@auto];; *\)
 
    let rec no_duplicates l =
        match l with
@@ -32,10 +40,53 @@ let subset l1 l2 =
            ) g;;
 
 
-   (* list is actually a graph  *)
+   (\* list is actually a graph  *\)
    let is_graph (g : graph) =
           if g = [] then false else
           let all_nodes = all_nodes g in
-          no_duplicates all_nodes && is_graph1 all_nodes g;;
+          no_duplicates all_nodes && is_graph1 all_nodes g;; *)
 
-lemma cons_graphs_lem2 (x : node*node list) (g : graph) = subset (snd x) (fst x :: (all_nodes g)) && is_graph g ==> is_graph (x :: g);;
+(* Hang on this theorem with last message from log: *)
+(* lemma cons_graphs_trash2 (x : node*node list) (g : graph) = subset (snd x) (all_nodes g) ==> is_graph (x :: g) [@@auto];; *)
+(*
+[DEBUG/1proc|t0|simplify|9.154]
+     expand-nonrec-funs.start
+     :e (let
+         ((a!1
+           (|get.::.1_3286/1proc|
+            (all_nodes__2980/1proc g2_3765/1proc
+             (|::| (|tuple_get.0_3289/1proc| g1_3764/1proc) |[]|)))))
+         (|List.mem_3307/1proc|
+          (|get.::.0_3285/1proc| (|tuple_get.1_3290/1proc| x_3436/1proc)) a!1))
+*)
+
+(* Hang on this theorem with last message from log: *)
+(* lemma cons_graphs_trash3 (x : node*node list) (g : graph) = subset (snd x) (all_nodes g) && is_graph g ==> is_graph (x :: g) [@@auto];; *)
+(*
+[DEBUG/1proc|t0|simplify|9.981]
+  expand-nonrec-funs.start
+  :e (let
+      ((a!1
+        (|get.::.0_3285/1proc|
+         (|get.::.1_3286/1proc|
+          (|tuple_get.1_3290/1proc| (|get.::.0_3292/1proc| g2_4270/1proc))))))
+      (=
+       (|get.::.0_3285/1proc|
+        (|tuple_get.1_3290/1proc| (|get.::.0_3292/1proc| g2_4270/1proc)))
+       a!1))
+*)
+
+(* This lemma causes a hang pretty often *)
+
+(* lemma cons_graphs_lem2 (x : node*node list) (g : graph) = subset (snd x) (fst x :: (all_nodes g)) && is_graph g ==> is_graph (x :: g) [@@auto];; *)
+(*
+[DEBUG/1proc|t0|simplify|35.067]
+  expand-nonrec-funs.start
+  :e (let
+      ((a!1
+        (|get.::.1_5327/1proc|
+         (all_nodes__5021/1proc (|get.::.1_5334/1proc| g_5540/1proc)
+          (|::| (|tuple_get.0_5330/1proc| x_5539/1proc) |[]|)))))
+      ((_ is (|::| (String |`node list`_5325/1proc|) |`node list`_5325/1proc|))
+       a!1))
+*)
