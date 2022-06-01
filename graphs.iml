@@ -27,6 +27,9 @@ let rec neighbors (n : node) (g : graph) =
         if n = fst x then snd x else
         neighbors n xs;;
 
+lemma neighbors_gen n g =
+    (neighbors n g) [@trigger] <> [] ==> graph_mem n g [@@gen] [@@auto];;
+
 let rec no_duplicates l =
     match l with
     | [] -> true
@@ -127,96 +130,80 @@ lemma gcons x y g = graph_mem x g ==> graph_mem x (cons_graphs y g) [@@auto];;
        let a_neighb = List.hd neighbors in
        graph_mem node g && graph_mem a_neighb g;; *)
 
+lemma mem_false x = not (List.mem x []) [@@rw] [@@auto];;
+
 let rec count_non_members1 all_nodes stack acc =
   match all_nodes with
   | [] -> acc
-  | x :: xs -> if List.mem x stack then count_non_members1 xs stack  acc else count_non_members1 xs stack (acc+1);;
+  (* | x :: xs -> if List.mem x stack then count_non_members1 xs stack acc else count_non_members1 xs stack (acc+1);; *)
+  | x :: xs -> match List.mem x stack with
+               | true -> count_non_members1 xs stack acc
+               | false -> count_non_members1 xs stack (acc+1);;
 
 lemma count_non_id stack acc = count_non_members1 [] stack acc = acc [@@auto] [@@elim];;
 
-lemma count_start_one nodes2 = count_non_members1 nodes2 [] 1 = 1 + count_non_members1 nodes2 [] 0 [@@induct structural nodes2] [@@rw];;
+lemma count_non_zero nodes acc = count_non_members1 nodes [] acc = acc + List.length nodes [@@auto] [@@rw];;
 
-lemma count_non_zero nodes = count_non_members1 nodes [] 0 = List.length nodes [@@auto] [@@rw];;
+lemma count_non_zero_bound_upper nodes stack acc = (count_non_members1 nodes stack acc) [@trigger] <= acc + List.length nodes [@@auto] [@@gen] [@@rw] [@@fc];;
 
-lemma count_non_dec1 nodes x =
-    count_non_members1 nodes [x] 0 <=
-    count_non_members1 nodes [] 0 [@@induct structural nodes];;
+lemma count_non_zero_bound_unit_upper nodes x acc = count_non_members1 nodes [x] acc <= acc + List.length nodes [@@auto] [@@rw];;
+
+lemma count_non_zero_bound_unit_upper2 nodes x acc = count_non_members1 nodes [x] acc <= 1 + acc + List.length nodes [@@auto] [@@rw];;
+
+lemma count_non_dec1_non nodes x acc =
+      count_non_members1 nodes [x] acc <=
+      count_non_members1 nodes [] acc [@@induct structural nodes] [@@rw];;
+
+lemma count_non_members1_dec g x stack acc = (count_non_members1 g (x :: stack) acc) [@trigger] <= acc + List.length g [@@auto] [@@rw] [@@fc];;
+
+lemma count_non_add g stack acc = count_non_members1 g stack (acc+1) = (count_non_members1 g stack acc) + 1 [@@auto] [@@rw];;
+
+(* But if this holds as a hypothesis, then it means that they must be equal. *)
+lemma count_non_members_key1 g stack acc x = (count_non_members1 g stack acc <=
+                                            count_non_members1 g (x :: stack) acc) ==>
+                                            (count_non_members1 g (x :: stack) acc) [@trigger] = count_non_members1 g stack acc [@@induct functional count_non_members1] [@@rw] [@@fc];;
+
+(* Generalization of the previous, with different accumulators! *)
+lemma count_non_members_key2 g stack acc1 acc2 x = (count_non_members1 g stack acc1 <=
+                                            count_non_members1 g (x :: stack) acc1) ==>
+                                            (count_non_members1 g (x :: stack) acc2) = count_non_members1 g stack acc2 [@@induct functional count_non_members1] [@@fc];;
 
 let count_non_members g stack =
   let all_nodes = all_nodes g in
   count_non_members1 all_nodes stack 0;;
 
-lemma count_non_lemma1 all stack acc = count_non_members1 all stack acc >= acc [@@rw] [@@auto];;
 
-   (* lemma count_non_lemma2 all stack = count_non_members1 all stack 1 >= (-1) [@@rw] [@@auto] [@@apply count_non_lemma1 all stack 1];;
-
-      lemma count_non_lemma3 all stack = count_non_members1 all stack 0 >= (-1) [@@rw] [@@auto] [@@apply count_non_lemma1 all stack 0];; *)
+lemma count_non_lemma1 all stack acc = (count_non_members1 all stack acc) [@trigger] >= acc [@@rw] [@@auto] [@@fc] [@@gen];;
 
 lemma count_non_members_nonneg g stack = count_non_members g stack >= 0 [@@auto] [@@fc] [@@apply count_non_lemma1 (all_nodes g) stack 1];;
 
 lemma count_non_members_concat_nonneg g1 g2 stack = count_non_members (g1 :: g2) stack >= 0 [@@auto] [@@fc] [@@apply count_non_members_nonneg (g1 :: g2) stack];;
 
-lemma count_non_members_dec g x stack = count_non_members g (x :: stack) <= count_non_members g stack [@@induct structural stack];;
+lemma count_non_members_bound g stack = (count_non_members g stack) [@trigger] <= List.length (all_nodes g) [@@auto] [@@rw] [@@gen] [@@fc];;
 
-lemma count_non_lemma_dec2 g x stack = count_non_members g stack <= count_non_members g (x :: stack) ==>
-                                      count_non_members g stack = count_non_members g (x :: stack) [@@auto];;
+lemma adm_lemma0 gen_1 stack nbs1 = count_non_members1 gen_1 stack 1 <=
+    count_non_members1 gen_1 (nbs1 :: stack) 1 ==>
+    ((count_non_members1 gen_1 (nbs1 :: stack) 1 = count_non_members1 gen_1 stack 1) [@trigger] ||
+    stack <> []) [@@auto] [@@rewrite] [@@fc];;
 
-(* lemma count_non_members_concat_nonneg2 g1 g2 stack = count_non_members (g1 :: g2) stack >= (-1) [@@auto] [@@rw];; *)
+lemma adm_lemma1 gen_2 stack gen_1 = count_non_members1 gen_2 stack 1 <= count_non_members1 gen_2 gen_1 0 ==>
+                                     (count_non_members1 gen_2 gen_1 0 = count_non_members1 gen_2 stack 1) [@trigger] ||
+                                     stack <> [] [@@auto] [@@rw] [@@fc];;
 
-(* lemma count_non_independent1 all2 x stack n m =
-    count_non_members1 all2 stack n = count_non_members1 all2 (x :: stack) n &&
-    count_non_members1 all2 stack (1 + n) =
-    count_non_members1 all2 (x :: stack) (1 + n) &&
-    count_non_members1 all2 stack m = count_non_members1 all2 (x :: stack) m ==>
-    count_non_members1 all2 stack (1 + m) =
-    count_non_members1 all2 (x :: stack) (1 + m) [@@induct structural all2];; *)
+lemma adm_lemma2_1 g stack x acc = count_non_members1 g stack acc <= count_non_members1 g (x :: stack) acc ==>
+                                   (count_non_members1 g (x :: stack) acc) [@trigger] = count_non_members1 g stack acc [@@auto] [@@rw] [@@fc];;
 
-(* lemma count_non_independent_unit all2 all1 n m =
-       count_non_members1 all2 [all1] (1 + n) =
-       count_non_members1 all2 [all1] n ==>
-       count_non_members1 all2 [all1] (1 + m) = count_non_members1 all2 [all1] m [@@induct structural all2];;
+lemma adm_lemma2 g stack x = count_non_members g stack <= count_non_members g (x :: stack) ==>
+                            (count_non_members g (x :: stack)) [@trigger] = count_non_members g stack [@@auto] [@@rw] [@@fc];;
 
-   lemma count_non_independent_base all x n m =
-       count_non_members1 all [] n = count_non_members1 all [x] n ==>
-       count_non_members1 all [] m = count_non_members1 all [x] m [@@fc] [@@auto];;
+lemma adm_lemma g1 g2 nbs1 stack = (count_non_members (g1 :: g2) stack <= count_non_members (g1 :: g2) (nbs1 :: stack)) ==>
+                    List.mem nbs1 stack || count_non_members (g1 :: g2) (nbs1 :: stack) = count_non_members (g1 :: g2) stack [@@auto] [@@rw] [@@disable count_non_members];;
 
-   lemma count_non_independent all x stack n m = count_non_members1 all stack n = count_non_members1 all (x :: stack) n ==>
-                                            count_non_members1 all stack m = count_non_members1 all (x :: stack) m [@@induct structural stack];;
+lemma adm_lemma3_helper g stack x acc1 acc2 = count_non_members1 g stack acc1 <= count_non_members1 g (x :: stack) acc1 ==>
+                                              count_non_members1 g stack acc2 <= count_non_members1 g (x :: stack) acc2
+                                              [@@auto] [@@fc];;
 
-   lemma count_non_add all x stack acc = count_non_members1 all (x :: stack) acc <= count_non_members1 all stack acc [@@induct structural all];; *)
-
-(* lemma count_non_p1 all x xs = count_non_members1 all (x :: xs) 0 = count_non_members1 all xs 0 || (count_non_members1 all xs 0 - 1) [@@auto];; *)
-
-
-(* lemma count_non_lemma5 all x stack = count_non_members1 all stack 1 <= count_non_members1 all (x :: stack) 1 ==>
-                                        count_non_members1 all stack 1 = count_non_members1 all (x :: stack) 1;; *)
-
-(* let count_non_members g stack =
-     let all_nodes = all_nodes g in
-     let rec aux all_n acc =
-       match all_n with
-       | [] -> acc
-       | x :: xs -> if List.mem x stack then aux xs acc else aux xs (acc+1) in
-     aux all_nodes 0;;
-
-   let count_non_members g stack =
-       let all_nodes = all_nodes g in
-       let f x acc = if List.mem x stack then acc else acc+1 in
-       List.fold_right f ~base:0 all_nodes;; *)
-
-(* lemma count_non_members_geq_0 g stack = count_non_members g stack >= 0 [@@auto];;
-
-   let adm_helper stack x acc = if List.mem x stack then acc else acc + 1;;
-
-   lemma adm_fns_lemma gen_2 stack =
-       List.fold_right (adm_helper stack) ~base:0 gen_2 >= (-2) [@@rw] [@@auto];; *)
-
-(* #h adm_fns_lemma;; *)
-
-(* lemma adm_fns_lemma2 nbs1 stack gen_2 = List.fold_right
-        ((fun stack x acc -> if List.mem x stack then acc else acc + 1)
-         (nbs1 :: stack))
-        ~base:0 gen_2 >= (-2) [@@rw] [@@auto];; *)
+lemma adm_lemma3 g1 g2 x stack = graph_mem x g2 && count_non_members (g1 :: g2) stack <= count_non_members (g1 :: g2) (x :: stack) ==> List.mem x stack [@@auto] [@@rw];;
 
 let find_next_step_measure g stack rmder =
   Ordinal.pair
@@ -232,6 +219,19 @@ let rec find_next_step (nbs : node list) (stack : path) (b : node) (g : graph) =
         let temp = find_next_step (neighbors x g) (x :: stack) b g in
         if Option.is_none temp then find_next_step xs stack b g else temp
         [@@measure find_next_step_measure g stack nbs] [@@disable count_non_members] [@@auto];;
+        (* [@@measure find_next_step_measure g stack nbs] [@@auto];; *)
+
+(*  H0. List.length nbs2 <= List.length gen_12
+    H1. count_non_members (g1 :: g2) stack <=
+        count_non_members (g1 :: g2) (nbs1 :: stack)
+   |---------------------------------------------------------------------------
+    C0. nbs1 = gen_11
+    C1. b = nbs1
+    C2. List.mem nbs1 stack
+    C3. List.mem b gen_12
+    C4. List.mem gen_11 stack
+    C5. List.mem b nbs2
+    C6. b = gen_11 *)
 
 (* let rec find_next_step_old (c : node) (stack : path) (b : node) (g : graph) =
        let neighbors = List.filter (fun x -> not (List.mem x stack)) (neighbors c g) in
