@@ -168,6 +168,25 @@ lemma count_non_members_key2 g stack acc1 acc2 x = (count_non_members1 g stack a
                                             count_non_members1 g (x :: stack) acc1) ==>
                                             (count_non_members1 g (x :: stack) acc2) = count_non_members1 g stack acc2 [@@induct functional count_non_members1] [@@fc];;
 
+(* lemma change_stack_lemma g stack1 stack2 acc1 acc2 = count_non_members1 g stack1 acc1 <= 1 + count_non_members1 g stack2 acc1 ==>
+                                                        count_non_members1 g stack1 acc2 <= 1 + count_non_members1 g stack2 acc2 [@@induct functional count_non_members1] [@@fc];;
+
+   lemma change_stack g stack1 stack2 acc1 acc2 = count_non_members1 g stack1 acc1 <= count_non_members1 g stack2 acc1 ==>
+                                                  count_non_members1 g stack1 acc2 <= count_non_members1 g stack2 acc2 [@@induct functional count_non_members1] [@@fc];; *)
+
+(* Further generalization of the previous, off by one accumulators, and differing nonempty stacks *)
+(* lemma count_non_members_key3 g stack1 stack2 acc1 acc2 = count_non_members1 g stack1 2 <= count_non_members1 g stack2 1 ==>
+                                                            count_non_members1 g stack1 1 <= count_non_members1 g stack2 0
+                                                                               [@@auto] [@@fc];; *)
+
+(* lemma count_non_members_key3 g stack1 stack2 acc1 acc2 = count_non_members1 g stack1 2 <= count_non_members1 g stack2 1 ==>
+                                                            count_non_members1 g stack1 1 <= count_non_members1 g stack2 0
+                                                                               [@@induct functional count_non_members1] [@@fc];; *)
+
+(* lemma count_non_members_key3 g stack1 stack2 acc1 acc2 = count_non_members1 g stack1 (acc1 + 1) <= count_non_members1 g stack2 acc1 ==>
+                                                            count_non_members1 g stack1 (acc2 + 1) <= count_non_members1 g stack2 acc2
+                                                                               [@@auto] [@@fc];; *)
+
 let count_non_members g stack =
   let all_nodes = all_nodes g in
   count_non_members1 all_nodes stack 0;;
@@ -203,6 +222,9 @@ lemma adm_lemma3_helper g stack x acc1 acc2 = count_non_members1 g stack acc1 <=
                                               count_non_members1 g stack acc2 <= count_non_members1 g (x :: stack) acc2
                                               [@@auto] [@@fc];;
 
+lemma adm_lemma3_helper2 g x stack = count_non_members1 g stack 2 <= count_non_members1 g (x :: stack) 1 ==>
+                                     List.mem x g [@@induct functional count_non_members1] [@@rw];;
+
 lemma adm_lemma3 g1 g2 x stack = graph_mem x g2 && count_non_members (g1 :: g2) stack <= count_non_members (g1 :: g2) (x :: stack) ==> List.mem x stack [@@auto] [@@rw];;
 
 let find_next_step_measure g stack rmder =
@@ -219,6 +241,7 @@ let rec find_next_step (nbs : node list) (stack : path) (b : node) (g : graph) =
         let temp = find_next_step (neighbors x g) (x :: stack) b g in
         if Option.is_none temp then find_next_step xs stack b g else temp
         [@@measure find_next_step_measure g stack nbs] [@@disable count_non_members] [@@auto];;
+        (* [@@measure find_next_step_measure g stack nbs] [@@induct functional find_next_step];; *)
         (* [@@measure find_next_step_measure g stack nbs] [@@auto];; *)
 
 (*  H0. List.length nbs2 <= List.length gen_12
