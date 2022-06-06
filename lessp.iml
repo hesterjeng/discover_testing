@@ -1,5 +1,3 @@
-
-
 #require "imandra-discover-bridge";;
 
 (* Imandra.add_plugin_rand ();;
@@ -30,7 +28,7 @@ let rec difference x y =
   | S n, S m -> difference n m
 ;;
 
-(* let condition x y z = (lessp x z) && not (lessp x y);; *)
+let condition x y z = (lessp x z) && not (lessp x y);;
 
-(* let funlist = ["true";"false";"lessp";];;
-   Imandra_discover_bridge.User_level.discover ~rewrite_terms:false ~condition:"condition" ~iterations:2i ~verbose:true db funlist;; *)
+let funlist = ["true";"false";"lessp";];;
+Imandra_discover_bridge.User_level.discover ~rewrite_terms:false ~condition:"condition" ~iterations:2i ~verbose:true db funlist;;

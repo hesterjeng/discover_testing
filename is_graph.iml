@@ -1,0 +1,65 @@
+
+type node = int;;
+type node_with_edges = (node * node list)
+type graph = node_with_edges list;;
+type path = node list;;
+
+let empty : graph = List.empty;;
+
+let key_of (x : node_with_edges) = fst x;;
+
+let edges_of (x : node_with_edges) = snd x;;
+
+let all_nodes (g: graph) : node list =
+    List.map (fun (x : node_with_edges) -> fst x) g;;
+
+let graph_mem (x : node) (g : graph) = List.mem x (all_nodes g);;
+
+let rec neighbors (n : node) (g : graph) =
+    match g with
+    | [] -> []
+    | x :: xs ->
+        if n = fst x then snd x else
+        neighbors n xs;;
+
+let rec no_duplicates l =
+    match l with
+    | [] -> true
+    | x :: xs -> if List.mem x xs then false else no_duplicates xs;;
+
+let rec subset l1 l2 =
+    match l1 with
+    | [] -> true
+    | x :: xs -> if not (List.mem x l2) then false else subset xs l2;;
+
+let rec is_graph1 all_nodes g =
+    match g with
+    | [] -> true
+    | g1 :: gs ->
+        (
+            List.mem (fst g1) all_nodes &&
+            subset (snd g1) all_nodes &&
+            no_duplicates (snd g1) &&
+            is_graph1 all_nodes gs
+        );;
+
+
+let is_graph (g : graph) =
+    if g = [] then true else
+    let all_nodes = all_nodes g in
+    no_duplicates all_nodes && is_graph1 all_nodes g;;
+
+let is_large_graph g = is_graph g && List.length g > 3 && List.for_all (fun x -> not (List.is_empty (snd x))) g;;
+
+let rec n_models_diff c ms n =
+  if n < 0 then (
+    false
+  ) else (
+    match ms with
+    | [] -> n=0
+    | m::ms ->
+      c m && n_models_diff c ms (n-1)
+      && not (List.mem m ms)
+  )
+
+(* instance (fun ms -> n_models_diff my_condition ms 5);; *)
