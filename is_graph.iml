@@ -1,4 +1,6 @@
 
+#require "imandra-discover-bridge";;
+
 type node = int;;
 type node_with_edges = (node * node list)
 type graph = node_with_edges list;;
@@ -51,15 +53,19 @@ let is_graph (g : graph) =
 
 let is_large_graph g = is_graph g && List.length g > 3 && List.for_all (fun x -> not (List.is_empty (snd x))) g;;
 
-let rec n_models_diff c ms n =
+let rec n_models_diff_f f c ms n =
   if n < 0 then (
     false
   ) else (
     match ms with
     | [] -> n=0
     | m::ms ->
-      c m && n_models_diff c ms (n-1)
-      && not (List.mem m ms)
+      c m && f m = n
+      && n_models_diff_f f c ms (n-1)
   )
 
 (* instance (fun ms -> n_models_diff my_condition ms 5);; *)
+instance ~upto:200 (fun discover_instances f -> n_models_diff_f f is_large_graph discover_instances 2);;
+
+(* let funlist = ["no_duplicates";"subset";"neighbors";"true";];;
+   Imandra_discover_bridge.User_level.discover ~universal_condition:true ~imandra_instances:5i ~rewrite_terms:false ~condition:"is_large_graph" ~iterations:2i ~verbose:true db funlist;; *)
