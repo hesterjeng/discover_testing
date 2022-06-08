@@ -1,0 +1,14 @@
+
+#require "imandra-discover-bridge";;
+open Imandra_discover_bridge.User_level;;
+
+let rec count_non_members1 all_nodes stack acc =
+  match all_nodes with
+  | [] -> acc
+  | x :: xs -> match List.mem x stack with
+               | true -> count_non_members1 xs stack acc
+               | false -> count_non_members1 xs stack (acc+1);;
+
+(* discover db ~verbose:true ["count_non_members1";"[]";"List.append";"0";"1"];; *)
+(* discover db ~verbose:true ["count_non_members1";"[]";"+";"List.length";];; *)
+discover db ~extra_instances:true ~kb_completion:false ~verbose:true ["true";"<=";"count_non_members1";"[]";"+";"List.length";];;

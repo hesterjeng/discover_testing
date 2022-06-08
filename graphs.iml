@@ -76,12 +76,14 @@ let is_path (p : path) (g : graph) =
     let rec aux path_remaining g =
         match path_remaining with
         | [] -> true
+        | [x] -> if graph_mem x g then true else false
         | x :: xs ->
         (
+            let next = List.hd xs in
             if not (graph_mem x g) then false else
             match neighbors x g with
             | [] -> false
-            | neighbs -> if List.mem x neighbs then aux xs g else false
+            | neighbs -> if List.mem next neighbs then aux xs g else false
         ) in
     aux p g;;
 
@@ -226,6 +228,71 @@ let rec find_next_step (nbs : node list) (stack : path) (b : node) (g : graph) =
 let find_path a b g =
     if not (graph_mem a g) then None else
     if not (graph_mem b g) then None else
+    if a = b then Some [a] else
     find_next_step (neighbors a g) [a] b g;;
 
 let is_large_graph g = is_graph g && List.length g > 3 && List.for_all (fun x -> not (List.is_empty (snd x))) g;;
+
+lemma path_correctness_lemma_gen nbs stack b g =
+        match (find_next_step nbs stack b g) [@trigger] with
+        | Some p -> p <> []
+        | None -> true [@@rw] [@@fc] [@@auto];;
+
+(* lemma path_correctness_lemma_gen nbs stack b g1 g2 =
+       (\* graph_mem b g2 ==> *\)
+           match (find_next_step nbs stack b (g1 :: g2)) [@trigger] with
+           | Some p -> p <> []
+           | None -> true [@@rw] [@@fc] [@@auto];; *)
+
+   (* lemma path_correctness_lemma_singleton nbs b g1 g2 =
+              match (find_next_step nbs [b] b (g1 :: g2)) [@trigger] with
+              | Some p -> p <> []
+              | None -> true [@@rw] [@@fc] [@@auto];; *)
+
+(* let res111 = find_next_step [0] [] 0 [];; *)
+
+(* lemma find_step_is_path_lemma nbs stack b g =
+       graph_mem b g && List.mem b nbs ==>
+       is_path (List.append (List.rev stack) [b]) g [@@auto];; *)
+
+(* verify (fun b g nbs1 stack -> List.mem b (List.map key_of g) &&
+           find_next_step (neighbors nbs1 g) (nbs1 :: stack) b g = None ==>
+           b = nbs1 ||
+           is_path (List.append (List.rev stack) [b]) g ||
+           List.mem nbs1 stack);; *)
+
+(* lemma find_path_is_path_cons a b g1 g2 =
+       match find_path a b (g1 :: g2) with
+       | Some p -> is_path p (g1 :: g2)
+       | None -> true [@@auto];; *)
+
+let a : int = 1;;
+let b : int = 0;;
+let g1 : (node * node list) = (1, [0]);;
+let g2 : node_with_edges list = [(0, [3])];;
+let path = find_path a b (g1 :: g2);;
+let reseser = match path with
+  | Some p -> is_path p (g1 :: g2)
+  | None -> true;;
+
+lemma find_path_is_path_lemma_cons a b g1 g2 =
+    graph_mem b g2 ==>
+    match find_path a b (g1 :: g2) with
+    | Some p -> is_path p (g1 :: g2)
+    | None -> true [@@auto];;
+
+lemma find_path_is_path a b g =
+    match find_path a b g with
+    | Some p -> is_path p g
+    | None -> true [@@auto];;
+
+(* lemma find_step_is_path nbs stack b g =
+       graph_mem b g ==>
+       match find_next_step nbs stack b g with
+       | Some p -> is_path p g
+       | None -> true [@@auto];; *)
+
+theorem path_correctness a b g =
+    match find_path a b g with
+    | Some p -> path_from_to p a b g
+    | None -> true [@@auto];;
