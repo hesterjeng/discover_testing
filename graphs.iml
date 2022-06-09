@@ -238,34 +238,6 @@ lemma path_correctness_lemma_gen nbs stack b g =
         | Some p -> p <> []
         | None -> true [@@rw] [@@fc] [@@auto];;
 
-(* lemma path_correctness_lemma_gen nbs stack b g1 g2 =
-       (\* graph_mem b g2 ==> *\)
-           match (find_next_step nbs stack b (g1 :: g2)) [@trigger] with
-           | Some p -> p <> []
-           | None -> true [@@rw] [@@fc] [@@auto];; *)
-
-   (* lemma path_correctness_lemma_singleton nbs b g1 g2 =
-              match (find_next_step nbs [b] b (g1 :: g2)) [@trigger] with
-              | Some p -> p <> []
-              | None -> true [@@rw] [@@fc] [@@auto];; *)
-
-(* let res111 = find_next_step [0] [] 0 [];; *)
-
-(* lemma find_step_is_path_lemma nbs stack b g =
-       graph_mem b g && List.mem b nbs ==>
-       is_path (List.append (List.rev stack) [b]) g [@@auto];; *)
-
-(* verify (fun b g nbs1 stack -> List.mem b (List.map key_of g) &&
-           find_next_step (neighbors nbs1 g) (nbs1 :: stack) b g = None ==>
-           b = nbs1 ||
-           is_path (List.append (List.rev stack) [b]) g ||
-           List.mem nbs1 stack);; *)
-
-(* lemma find_path_is_path_cons a b g1 g2 =
-       match find_path a b (g1 :: g2) with
-       | Some p -> is_path p (g1 :: g2)
-       | None -> true [@@auto];; *)
-
 let a : int = 1;;
 let b : int = 0;;
 let g1 : (node * node list) = (1, [0]);;
