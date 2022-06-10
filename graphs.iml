@@ -247,16 +247,24 @@ let reseser = match path with
   | Some p -> is_path p (g1 :: g2)
   | None -> true;;
 
-lemma find_path_is_path_lemma_cons a b g1 g2 =
-    graph_mem b g2 ==>
-    match find_path a b (g1 :: g2) with
-    | Some p -> is_path p (g1 :: g2)
-    | None -> true [@@auto];;
+(* Before generalization *)
+(*  H0. List.mem b (List.map key_of g2)
+   |---------------------------------------------------------------------------
+    C0. Is_a(None, find_next_step g1.1 [g1.0] b (g1 :: g2))
+    C1. g1.0 = b
+    C2. rec_fun.is_path.aux.0
+        (Option.get (find_next_step g1.1 [g1.0] b (g1 :: g2))) (g1 :: g2) *)
 
-lemma find_path_is_path a b g =
-    match find_path a b g with
-    | Some p -> is_path p g
-    | None -> true [@@auto];;
+(* lemma find_path_is_path_lemma_cons a b g1 g2 =
+       graph_mem b g2 ==>
+       match find_path a b (g1 :: g2) with
+       | Some p -> is_path p (g1 :: g2)
+       | None -> true [@@simp] [@@induct functional is_path];; *)
+
+(* lemma find_path_is_path a b g =
+       match find_path a b g with
+       | Some p -> is_path p g
+       | None -> true [@@auto];; *)
 
 (* lemma find_step_is_path nbs stack b g =
        graph_mem b g ==>

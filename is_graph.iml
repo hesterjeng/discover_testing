@@ -65,7 +65,7 @@ let rec n_models_diff_f f c ms n =
   )
 
 (* instance (fun ms -> n_models_diff my_condition ms 5);; *)
-instance ~upto:200 (fun discover_instances f -> n_models_diff_f f is_large_graph discover_instances 2);;
+(* instance ~upto:200 (fun discover_instances f -> n_models_diff_f f is_large_graph discover_instances 2);; *)
 
-(* let funlist = ["no_duplicates";"subset";"neighbors";"true";];;
-   Imandra_discover_bridge.User_level.discover ~universal_condition:true ~imandra_instances:5i ~rewrite_terms:false ~condition:"is_large_graph" ~iterations:2i ~verbose:true db funlist;; *)
+let funlist = ["no_duplicates";"subset";"neighbors";"true";];;
+Imandra_discover_bridge.User_level.discover ~universal_condition:true ~imandra_instances:5i ~rewrite_terms:false ~condition:"is_large_graph" ~iterations:2i ~verbose:true db funlist;;
