@@ -226,6 +226,7 @@ let rec find_next_step (nbs : node list) (stack : path) (b : node) (g : graph) =
         [@@measure find_next_step_measure g stack nbs] [@@auto];;
 
 let find_path a b g =
+    if not (is_graph g) then None else
     if not (graph_mem a g) then None else
     if not (graph_mem b g) then None else
     if a = b then Some [a] else
@@ -236,16 +237,27 @@ let is_large_graph g = is_graph g && List.length g > 3 && List.for_all (fun x ->
 lemma path_correctness_lemma_gen nbs stack b g =
         match (find_next_step nbs stack b g) [@trigger] with
         | Some p -> p <> []
-        | None -> true [@@rw] [@@fc] [@@auto];;
+        | None -> true [@@fc] [@@auto];;
 
-let a : int = 1;;
-let b : int = 0;;
-let g1 : (node * node list) = (1, [0]);;
-let g2 : node_with_edges list = [(0, [3])];;
-let path = find_path a b (g1 :: g2);;
-let reseser = match path with
-  | Some p -> is_path p (g1 :: g2)
-  | None -> true;;
+let is_legit_node n g =
+  let key = key_of n in
+  let edges = edges_of n in
+  graph_mem key g && no_duplicates edges && List.for_all (fun x -> graph_mem x g) edges;;
+
+(* 6/21/22 *)
+(* lemma graph_mem_lemma p b g1 g2 = List.mem b (List.map key_of g2) ==>
+       rec_fun.is_path.aux.0
+       (Option.get (find_next_step g1.1 gen_1 b (g1 :: g2))) (g1 :: g2) ||
+       Is_a(None, find_next_step g1.1 gen_1 b (g1 :: g2)) *)
+
+(* let a : int = 1;;
+   let b : int = 0;;
+   let g1 : (node * node list) = (1, [0]);;
+   let g2 : node_with_edges list = [(0, [3])];;
+   let path = find_path a b (g1 :: g2);;
+   let reseser = match path with
+     | Some p -> is_path p (g1 :: g2)
+     | None -> true;; *)
 
 (* Before generalization *)
 (*  H0. List.mem b (List.map key_of g2)
@@ -255,11 +267,13 @@ let reseser = match path with
     C2. rec_fun.is_path.aux.0
         (Option.get (find_next_step g1.1 [g1.0] b (g1 :: g2))) (g1 :: g2) *)
 
-(* lemma find_path_is_path_lemma_cons a b g1 g2 =
-       graph_mem b g2 ==>
-       match find_path a b (g1 :: g2) with
-       | Some p -> is_path p (g1 :: g2)
-       | None -> true [@@simp] [@@induct functional is_path];; *)
+lemma find_path_is_path_lemma_cons a b g1 g2 =
+    graph_mem b g2 && (is_legit_node g1 (g1 :: g2)) ==>
+    let res = find_path a b (g1 :: g2) in
+    match res with
+    | Some p -> is_path p (g1 :: g2)
+    | None -> true [@@auto] [@@disable neighbors] [@@disable find_next_step]
+                   [@@disable is_graph] [@@disable no_duplicates] [@@disable is_legit_node];;
 
 (* lemma find_path_is_path a b g =
        match find_path a b g with
