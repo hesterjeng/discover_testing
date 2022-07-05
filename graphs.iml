@@ -4,7 +4,6 @@ type graph = node_with_edges list;;
 type path = node list;;
 
 #max_induct 1;;
-(* #debug on;; *)
 
 let empty : graph = List.empty;;
 
@@ -65,11 +64,21 @@ let rec is_graph1 all_nodes g =
             is_graph1 all_nodes gs
         );;
 
+let is_graph2 all_nodes (node,edges) =
+    List.mem node all_nodes &&
+    subset edges all_nodes &&
+    no_duplicates edges;;
+
+(* let is_graph (g : graph) =
+       if g = [] then true else
+       let all_nodes = all_nodes g in
+       no_duplicates all_nodes && is_graph1 all_nodes g;; *)
 
 let is_graph (g : graph) =
     if g = [] then true else
     let all_nodes = all_nodes g in
-    no_duplicates all_nodes && is_graph1 all_nodes g;;
+    no_duplicates all_nodes &&
+    List.for_all (is_graph2 all_nodes) g;;
 
 let is_path (p : path) (g : graph) =
     if List.is_empty p then false else
@@ -119,19 +128,6 @@ lemma gcons x y g = graph_mem x g ==> graph_mem x (cons_graphs y g) [@@auto];;
 (* This doesn't work because a lot of the time we aren't able to generate random graphs *)
 (* discover db ~verbose:true ~condition:"is_graph" ~kb_completion:false ~rewrite_schemas:false ~rewrite_terms:false ~universal_condition:true ["is_graph";"cons_graphs";"append_graphs";"true"];; *)
 
-(* lemma cons_graphs_lem2 (x : node_with_edges) (g : graph) =
-       no_duplicates (edges_of x) &&
-       not (graph_mem (key_of x) g) &&
-       subset (edges_of x) (key_of x :: (all_nodes g)) &&
-       is_graph g ==> is_graph (cons_graphs x g);; *)
-
-(* lemma graph_mem_trash2 g = is_graph g ==>
-       let first = List.hd g in
-       let node = fst first in
-       let neighbors = snd first in
-       let a_neighb = List.hd neighbors in
-       graph_mem node g && graph_mem a_neighb g;; *)
-
 lemma mem_false x = not (List.mem x []) [@@rw] [@@auto];;
 
 let rec count_non_members1 all_nodes stack acc =
@@ -172,12 +168,6 @@ lemma count_non_members_key2 g stack acc1 acc2 x = (count_non_members1 g stack a
 
 lemma count_non_lemma1 all stack acc = (count_non_members1 all stack acc) [@trigger] >= acc [@@rw] [@@auto] [@@fc] [@@gen];;
 
-(* lemma count_non_members_nonneg g stack = count_non_members g stack >= 0 [@@auto] [@@fc] [@@apply count_non_lemma1 (all_nodes g) stack 1];;
-
-   lemma count_non_members_concat_nonneg g1 g2 stack = count_non_members (g1 :: g2) stack >= 0 [@@auto] [@@fc] [@@apply count_non_members_nonneg (g1 :: g2) stack];;
-
-   lemma count_non_members_bound g stack = (count_non_members g stack) [@trigger] <= List.length (all_nodes g) [@@auto] [@@rw] [@@gen] [@@fc];; *)
-
 lemma adm_lemma0 gen_1 stack nbs1 = count_non_members1 gen_1 stack 1 <=
     count_non_members1 gen_1 (nbs1 :: stack) 1 ==>
     ((count_non_members1 gen_1 (nbs1 :: stack) 1 = count_non_members1 gen_1 stack 1) [@trigger] ||
@@ -189,12 +179,6 @@ lemma adm_lemma1 gen_2 stack gen_1 = count_non_members1 gen_2 stack 1 <= count_n
 
 lemma adm_lemma2_1 g stack x acc = count_non_members1 g stack acc <= count_non_members1 g (x :: stack) acc ==>
                                    (count_non_members1 g (x :: stack) acc) [@trigger] = count_non_members1 g stack acc [@@auto] [@@rw] [@@fc];;
-
-(* lemma adm_lemma2 g stack x = count_non_members g stack <= count_non_members g (x :: stack) ==>
-                               (count_non_members g (x :: stack)) [@trigger] = count_non_members g stack [@@auto] [@@rw] [@@fc];; *)
-
-(* lemma adm_lemma g1 g2 nbs1 stack = (count_non_members (g1 :: g2) stack <= count_non_members (g1 :: g2) (nbs1 :: stack)) ==>
-                       List.mem nbs1 stack || count_non_members (g1 :: g2) (nbs1 :: stack) = count_non_members (g1 :: g2) stack [@@auto] [@@rw] [@@disable count_non_members];; *)
 
 lemma adm_lemma3_helper g stack x acc1 acc2 = count_non_members1 g stack acc1 <= count_non_members1 g (x :: stack) acc1 ==>
                                               count_non_members1 g stack acc2 <= count_non_members1 g (x :: stack) acc2
@@ -216,17 +200,18 @@ let count_non_members g stack =
   count_non_members1 all_nodes stack 0;;
 
 let rec find_next_step (nbs : node list) (stack : path) (b : node) (g : graph) =
-    if List.mem b nbs then Some (List.rev (b ::stack)) else
+    if List.mem b nbs then Some (List.rev (b :: stack)) else
     match nbs with
     | [] -> None
     | x :: xs ->
         if List.mem x stack then find_next_step xs stack b g else
         let temp = find_next_step (neighbors x g) (x :: stack) b g in
-        if Option.is_none temp then find_next_step xs stack b g else temp
+        match temp with
+        | None -> find_next_step xs stack b g
+        | Some _ -> temp
         [@@measure find_next_step_measure g stack nbs] [@@auto];;
 
 let find_path a b g =
-    if not (is_graph g) then None else
     if not (graph_mem a g) then None else
     if not (graph_mem b g) then None else
     if a = b then Some [a] else
@@ -234,57 +219,35 @@ let find_path a b g =
 
 let is_large_graph g = is_graph g && List.length g > 3 && List.for_all (fun x -> not (List.is_empty (snd x))) g;;
 
-lemma path_correctness_lemma_gen nbs stack b g =
-        match (find_next_step nbs stack b g) [@trigger] with
-        | Some p -> p <> []
-        | None -> true [@@fc] [@@auto];;
+(* lemma path_correctness_lemma_gen nbs stack b g =
+           match (find_next_step nbs stack b g) [@trigger] with
+           | Some p -> p <> []
+           | None -> true [@@fc] [@@auto];; *)
 
 let is_legit_node n g =
   let key = key_of n in
   let edges = edges_of n in
   graph_mem key g && no_duplicates edges && List.for_all (fun x -> graph_mem x g) edges;;
 
-(* 6/21/22 *)
-(* lemma graph_mem_lemma p b g1 g2 = List.mem b (List.map key_of g2) ==>
-       rec_fun.is_path.aux.0
-       (Option.get (find_next_step g1.1 gen_1 b (g1 :: g2))) (g1 :: g2) ||
-       Is_a(None, find_next_step g1.1 gen_1 b (g1 :: g2)) *)
+lemma singleton_path_is_path a g =
+    graph_mem a g && is_graph g ==>
+        match find_path a a g with
+        | Some x when x = [a] -> is_path x g
+        | _ -> false [@@auto] [@@fc];;
 
-(* let a : int = 1;;
-   let b : int = 0;;
-   let g1 : (node * node list) = (1, [0]);;
-   let g2 : node_with_edges list = [(0, [3])];;
-   let path = find_path a b (g1 :: g2);;
-   let reseser = match path with
-     | Some p -> is_path p (g1 :: g2)
-     | None -> true;; *)
-
-(* Before generalization *)
-(*  H0. List.mem b (List.map key_of g2)
-   |---------------------------------------------------------------------------
-    C0. Is_a(None, find_next_step g1.1 [g1.0] b (g1 :: g2))
-    C1. g1.0 = b
-    C2. rec_fun.is_path.aux.0
-        (Option.get (find_next_step g1.1 [g1.0] b (g1 :: g2))) (g1 :: g2) *)
-
-lemma find_path_is_path_lemma_cons a b g1 g2 =
-    graph_mem b g2 && (is_legit_node g1 (g1 :: g2)) ==>
-    let res = find_path a b (g1 :: g2) in
+lemma find_path_is_path_lemma0 a b g =
+    graph_mem a g && is_graph g ==>
+    let res = find_path a b g in
     match res with
-    | Some p -> is_path p (g1 :: g2)
+    | Some [x] -> a = b
+    | _ -> true [@@auto] [@@fc];;
+
+lemma find_path_is_path_lemma a b g =
+    let res = find_path a b g in
+    match res with
+    | Some p -> is_path p g
     | None -> true [@@auto] [@@disable neighbors] [@@disable find_next_step]
-                   [@@disable is_graph] [@@disable no_duplicates] [@@disable is_legit_node];;
-
-(* lemma find_path_is_path a b g =
-       match find_path a b g with
-       | Some p -> is_path p g
-       | None -> true [@@auto];; *)
-
-(* lemma find_step_is_path nbs stack b g =
-       graph_mem b g ==>
-       match find_next_step nbs stack b g with
-       | Some p -> is_path p g
-       | None -> true [@@auto];; *)
+                    [@@disable is_graph2] [@@disable no_duplicates] [@@disable is_legit_node];;
 
 theorem path_correctness a b g =
     match find_path a b g with

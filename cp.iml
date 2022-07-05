@@ -1,0 +1,12 @@
+#require "imandra-discover-bridge";;
+
+let g x = List.rev (List.rev x) = x;;
+
+#max_induct 1;;
+
+let res = match Verify.top ~hints:Hints.auto ~error_on_fail:false "g" with
+ | V_unknown { checkpoints = Some cps; _ } ->
+   cps
+ | _ -> failwith "can't extract checkpoints" [@@program];;
+
+Imandra_discover_bridge.User_level.discover_from_checkpoint db res;;

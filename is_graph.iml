@@ -3,21 +3,21 @@
 
 type node = int;;
 type node_with_edges = (node * node list)
-type graph = node_with_edges list;;
+(* type graph = node_with_edges list;; *)
 type path = node list;;
 
-let empty : graph = List.empty;;
+let empty = List.empty;;
 
 let key_of (x : node_with_edges) = fst x;;
 
 let edges_of (x : node_with_edges) = snd x;;
 
-let all_nodes (g: graph) : node list =
+let all_nodes g : node list =
     List.map (fun (x : node_with_edges) -> fst x) g;;
 
-let graph_mem (x : node) (g : graph) = List.mem x (all_nodes g);;
+let graph_mem (x : node) g = List.mem x (all_nodes g);;
 
-let rec neighbors (n : node) (g : graph) =
+let rec neighbors (n : node) g =
     match g with
     | [] -> []
     | x :: xs ->
@@ -46,50 +46,20 @@ let rec is_graph1 all_nodes g =
         );;
 
 
-let is_graph (g : graph) =
+let is_graph g =
     if g = [] then true else
     let all_nodes = all_nodes g in
     no_duplicates all_nodes && is_graph1 all_nodes g;;
 
-
-let graph_add_node (x : node) (g : graph) : graph =
+let graph_add_node (x : node) g =
   if not (graph_mem x g) then
-    (((x,[]) :: g) : graph) else (g : graph);;
+    ((x,[]) :: g) else g;;
 
-(* let graph_add_edge x y g =
-     if not (graph_mem x g) then g *)
+let mysterious_condition g = is_graph g && List.length g > 3 && List.for_all (fun x -> not (List.is_empty (snd x))) g;;
 
-(* let is_large_graph g = is_graph g && List.length g > 3 && List.for_all (fun x -> not (List.is_empty (snd x))) g;; *)
+let funlist = ["is_graph";"graph_add_node";"true";];;
 
-(* let rec n_models_diff_f f c ms n =
-     if n < 0 then (
-       false
-     ) else (
-       match ms with
-       | [] -> n=0
-       | m::ms ->
-         c m && f m = n
-         && n_models_diff_f f c ms (n-1)
-     );; *)
-
-let mysterious_condition g x = is_graph g && List.length g > 3 && List.for_all (fun x -> not (List.is_empty (snd x))) g && x <> true;;
-
-(* let mysterious_condition2 (x,y,z) = x > y && y > z && z < 0;; *)
-(* type record1 = {x : int; y : int; z : int} ;; *)
-
-(* let f {x;y} = x > y;; *)
-
-(* let mysterious_condition l =
-     match l with
-     | [x;y;z] -> x > y && y > z && z < 0
-     | _ -> false ;; *)
-
-(* instance ~upto:600 (fun discover_instances f -> n_models_diff_f f mysterious_condition discover_instances 6);; *)
-
-(* let funlist = ["no_duplicates";"subset";"neighbors";"true";];; *)
-(* let funlist = ["is_graph";"graph_add_node";"true";];; *)
-(* let funlist = ["is_graph";"graph_add_node";"true";];; *)
-
-let funlist = ["is_graph";"true";];;
+(* Imandra_discover_bridge.User_level.discover ~rewrite_terms:false
+                                               ~condition:"mysterious_condition" ~rewrite_schemas:false ~iterations:2i ~verbose:false db funlist;; *)
 Imandra_discover_bridge.User_level.discover ~imandra_instances:5i ~rewrite_terms:false
-                                            ~condition:"mysterious_condition" ~rewrite_schemas:false ~iterations:3i ~verbose:false db funlist;;
+                                            ~condition:"is_graph" ~rewrite_schemas:false ~iterations:2i ~verbose:false db funlist;;
