@@ -1,0 +1,24 @@
+#program;;
+
+let eval_ = Imandra.eval_code_fragment;;
+
+let eval_logic str =
+  let fragment = Code_fragment.make ~mode:Code_fragment.Logic str in
+  eval_ fragment;;
+
+let f () =
+    ignore (eval_logic "#redef true;;");
+    ignore (eval_logic "let z = 17;;");
+    ignore (eval_logic {|
+      let rec n_models_diff_f f c ms n =
+        if n < 0 then (
+          false
+        ) else (
+          match ms with
+          | [] -> n=0
+          | m::ms ->
+            c m && f m = n
+            && n_models_diff_f f c ms (n-1)) |});
+    ignore (eval_logic (Format.sprintf "instance (fun x -> x <> 0);;"));;
+
+f ();;

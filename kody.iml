@@ -1,0 +1,55 @@
+#redef;;
+
+type nat =
+  | Z
+  | S of nat;;
+
+let one = S Z;;
+
+let rec add x y =
+  match x,y with
+  | m,Z -> m
+  | m,S(k) -> S(add m k)
+
+let pred n =
+  match n with
+  | S k -> k
+  | Z -> Z ;;
+
+let rec sub m n =
+  match m,n with
+  | m,Z -> m
+  | m,S k -> pred (sub m k);;
+
+let rec mul x y =
+  match x,y with
+  | m, Z -> Z
+  | m, S(k) -> add (mul m k) m;;
+
+let rec rem a b =
+  match a,b with
+  | Z,n -> Z
+  | S k, n -> mul (S (rem k n)) (if (S (rem k n) = n) then Z else one) ;;
+
+let rec quo a b =
+  match a, b with
+  | Z,b -> Z
+  | S k, n -> add (quo k n) (sub (one) (if (S (rem k n) = n) then Z else one));;
+
+let rec lt x y =
+match x,y with
+| Z,Z -> false
+| Z, S k -> true
+| S k, Z -> false
+| S k1, S k2 -> lt k1 k2;;
+
+let le x y = lt x y || x = y;;
+
+let gt x y = not(lt x y);;
+
+let ge x y = not(le x y);;
+
+#require "imandra-discover-bridge";;
+let funlist = ["one";"add";"pred";"sub";"mul";"rem";"quo";"lt";"Z"];;
+
+Imandra_discover_bridge.User_level.discover ~verbose:true ~kb_completion:false db funlist;;

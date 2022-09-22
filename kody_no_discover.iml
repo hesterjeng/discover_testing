@@ -1,0 +1,114 @@
+#redef;; 
+type nat =
+  | Z 
+  | S of nat;;
+let one = S Z;;
+let rec eq x y = 
+  match x,y with 
+  | Z,Z -> true 
+  | (S k), Z -> false 
+  | Z, (S k) -> false
+  | (S k1), (S k2) -> eq k1 k2 ;;
+  
+ theorem eq_native_eq m n =  eq m n = (m = n) [@@auto][@@rw];;
+ 
+let rec num_of_nat n = 
+  match n with  
+  | Z -> 0 
+  | (S k) -> 1 + num_of_nat k ;;
+let pred n = 
+  match n with 
+  | S k -> k 
+  | Z -> Z ;;
+let rec sub m n = 
+  match m,n with 
+  | m,Z -> m 
+  | m,S k -> pred (sub m k);;
+ lemma sub_zero a = sub Z a = Z 
+  [@@auto][@@rw];;
+ lemma succ_pred x = x <> Z ==> S (pred x) = x [@@auto] [@@rw];;
+ lemma sub_succ_one a = sub (S a) one = a
+  [@@induct a];;
+ lemma sub_succ a b = sub a (S b) = sub (sub a b) one 
+  [@@auto];;
+ lemma sub_succ_succ_aux a b = sub (S a) (S (S b)) = sub (sub (S a) (S b)) one
+  [@@auto];;
+ theorem sub_succ_succ a b = sub (S a) (S b) = sub a b [@@auto] [@@rw];; 
+ (* theorem sub_self a = sub a a = Z [@@induct a];; *)
+  
+(* Addition *)
+let rec add x y = 
+  match x,y with 
+  | m,Z -> m 
+  | m,S(k) -> S(add m k)
+theorem add_comm m n = 
+  add m n = add n m [@@auto][@@rw][@@permutative];; 
+theorem add_assoc m n p = 
+add (add m n) p = add m (add n p) [@@auto][@@rw];;
+theorem add_assoc' m n p = 
+add n (add m p) = add m (add n p)  [@@auto][@@rw][@@permutative];; 
+theorem add_is_succ a = S a = add a (S Z) [@@auto][@@rw];; 
+theorem add_succ m n = 
+  add (S m) n = S(add m n)[@@auto][@@rw];;
+theorem add_Z_l n = 
+  add Z n = n [@@auto][@@rw];;
+theorem add_Z_r n = 
+  add n Z = n [@@auto][@@rw];;
+ 
+  (* Multiplication *)
+let rec mul x y = 
+  match x,y with 
+  | m, Z -> Z 
+  | m, S(k) -> add (mul m k) m;;
+  
+theorem mul_zero_l m = mul Z m = Z [@@induct m][@@rw];;
+theorem mul_zero_r m = mul m Z = Z [@@auto][@@rw];; 
+theorem mul_succ m n = mul (S m) n = add (mul m n) n [@@auto][@@rw];; 
+theorem mul_succ' m n = mul m (S n) = add (mul m n) m [@@auto][@@rw];; 
+theorem mul_comm m n = mul m n = mul n m 
+ [@@induct m][@@permutative];; 
+ theorem mul_distrib m n p = mul p (add m n) = add (mul p m) (mul p n) 
+  [@@auto][@@permutative] 
+  
+(* #max_induct 1;;  *)
+theorem mul_assoc m n p = mul (mul m n) p = mul m (mul n p) 
+  [@@auto][@@rw][@@permutative];; 
+ (* theorem sub_zero a = sub (S Z) a = Z [@@auto][@@rw];;  *)
+(*Alpha operator. p 37 of Goodstein. *)
+let alpha x = sub one (sub one x);;
+lemma alpha_zero = alpha Z = Z [@@auto];;
+lemma alpha_succ a = alpha (S a) = one [@@induct a];;
+(* #max_induct 1;;
+theorem alpha_invol x = alpha (alpha x) = alpha x [@@auto];; *)
+(* Orders *)
+let rec lt x y = 
+match x,y with 
+| Z,Z -> false
+| Z, S k -> true 
+| S k, Z -> false 
+| S k1, S k2 -> lt k1 k2 
+let le x y = lt x y || x = y
+let gt x y = not(lt x y)
+let ge x y = not(le x y)
+theorem lt_trans a b c = lt a b ==> lt b c ==> lt a c [@@auto];;
+theorem lt_succ a b = lt a (S b) ==> le a b [@@auto][@@rw];;
+theorem lt_succ_2 a b = lt a b ==> lt (S a) b || S a = b [@@auto][@@rw];;
+theorem lt_succ_3 a b = a <> b ==> lt a (S b) ==> lt a b [@@auto][@@rw];;
+theorem le_trans a b c = le a b ==> le b c ==> le a c [@@auto];;
+(* Division : Chapter IV of Goodstein. *)
+let rec rem a b = 
+  match a,b with 
+  | Z,n -> Z 
+  | S k, n -> mul (S (rem k n)) (if (S (rem k n) = n) then Z else one) ;;
+let rec quo a b = 
+  match a, b with 
+  | Z,b -> Z 
+  | S k, n -> add (quo k n) (sub (one) (if (S (rem k n) = n) then Z else one));;
+lemma rem_div_zero a = rem a Z = a [@@induct a][@@rw];; 
+lemma rem_div_one a = rem a (S Z) = Z [@@induct a][@@rw];;
+lemma rem_421 a b = rem a b = Z && lt (S Z) b ==> rem (S a) b = (S Z)[@@auto];;
+
+#max_induct 1;;
+(* lemma try1 a = rem a (S a) = a || rem a (S a) = Z [@@auto];; *)
+
+(* lemma rem_self a = rem a a = Z [@@auto];; *)

@@ -1,0 +1,54 @@
+
+type formula =
+  | True
+  | False
+  | Var of int
+  | If of formula * formula * formula
+;;
+
+let rec if_depth (f : formula) =
+  match f with
+    If (c, _, _) -> 1 + if_depth c
+  | _ -> 0
+;;
+
+let rec if_complexity (f : formula) =
+  match f with
+    If (c, l, r) ->
+    (if_complexity c) * (if_complexity l + if_complexity r)
+  | _ -> 1
+;;
+
+let n_measure (f : formula) =
+  let o1 = Ordinal.of_int (if_complexity f) in
+  let o2 = Ordinal.of_int (if_depth f) in
+  Ordinal.pair o1 o2
+;;
+
+(* Normalise: Place If's into normal form by applying the
+    equivalence
+
+      If (If (p, q, r), left, right)
+       =
+      If (p, If (q, left, right),
+             If (r, left, right)).
+
+   This makes tautology checking easy.
+   Of course this normalisation may have exponential blow-up!
+   We provide an ordinal-based termination measure.
+ *)
+
+lemma n_measure_valid f =
+  Ordinal.is_valid (n_measure f)
+[@@auto] [@@rw]
+;;
+
+#debug on;;
+
+lemma elim_n_measure f g =
+  Ordinal.(n_measure f << n_measure g)
+= (if_complexity f < if_complexity g
+   || (if_complexity f = if_complexity g
+       && if_depth f < if_depth g))
+[@@auto] [@@rw]
+;;

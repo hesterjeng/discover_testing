@@ -1,5 +1,4 @@
-
-(* #require "imandra-discover-bridge";; *)
+#require "imandra-discover-bridge";;
 
 type node = int;;
 type node_with_edges = (node * node list)
@@ -8,16 +7,16 @@ type path = node list;;
 
 let empty = List.empty;;
 
-let key_of (x : node_with_edges) = fst x;;
+let key_of x = fst x;;
 
-let edges_of (x : node_with_edges) = snd x;;
+let edges_of x = snd x;;
 
-let all_nodes g : node list =
-    List.map (fun (x : node_with_edges) -> fst x) g;;
+let all_nodes g =
+    List.map (fun x -> fst x) g;;
 
-let graph_mem (x : node) g = List.mem x (all_nodes g);;
+let graph_mem x g = List.mem x (all_nodes g);;
 
-let rec neighbors (n : node) g =
+let rec neighbors n g =
     match g with
     | [] -> []
     | x :: xs ->
@@ -51,20 +50,24 @@ let is_graph g =
     let all_nodes = all_nodes g in
     no_duplicates all_nodes && is_graph1 all_nodes g;;
 
-let graph_add_node (x : node) g =
+let graph_add_node x g =
   if not (graph_mem x g) then
     ((x,[]) :: g) else g;;
 
-lemma edges_key_relation x g =
-    is_graph g &&
-    List.mem x g ==>
-    neighbors (key_of x) g = edges_of x [@@auto] [@@rw];;
+(* lemma edges_key_relation x g =
+       is_graph g &&
+       List.mem x g ==>
+       neighbors (key_of x) g = edges_of x [@@auto] [@@rw];; *)
 
-(* let mysterious_condition g = is_graph g && List.length g > 3 && List.for_all (fun x -> not (List.is_empty (snd x))) g;;
+let mysterious_condition x g = is_graph g && List.length g > 3 && List.for_all (fun x -> not (List.is_empty (snd x))) g && graph_mem x g;;
 
-   let funlist = ["is_graph";"graph_add_node";"true";];;
+(* let funlist = ["is_graph";"graph_add_node";"true";];; *)
 
-   (\* Imandra_discover_bridge.User_level.discover ~rewrite_terms:false
-                                                  ~condition:"mysterious_condition" ~rewrite_schemas:false ~iterations:2i ~verbose:false db funlist;; *\)
-   Imandra_discover_bridge.User_level.discover ~imandra_instances:5i ~rewrite_terms:false
-                                               ~condition:"is_graph" ~rewrite_schemas:false ~iterations:2i ~verbose:false db funlist;; *)
+let funlist = ["true";"neighbors";"no_duplicates";"graph_mem";"graph_add_node";"List.mem";"is_graph"];;
+
+   (* Imandra_discover_bridge.User_level.discover ~rewrite_terms:false
+                                                  ~condition:"mysterious_condition" ~rewrite_schemas:false ~iterations:2i ~verbose:false db funlist;; *)
+(* Imandra_discover_bridge.User_level.discover ~imandra_instances:5i
+                                                  ~condition:"mysterious_condition" ~iterations:3i ~verbose:false db funlist;; *)
+Imandra_discover_bridge.User_level.discover ~imandra_instances:5i ~verify_bound:100i
+                                            ~iterations:3i ~verbose:false db funlist;;

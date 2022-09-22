@@ -1,0 +1,18 @@
+
+let rec my_subset ?(smaller = []) l2 =
+  match smaller with
+| [] -> true
+| hd :: tl -> List.mem hd l2 && my_subset ~smaller:tl l2
+;;
+
+let my_subset2 ~smaller l2 =
+  match smaller with
+  | None -> my_subset ~smaller:[] l2
+  | Some x -> my_subset ~smaller:x l2;;
+
+let my_condition ?(x = [3]) y = x <> [] || x = y;;
+
+#require "imandra-discover-bridge";;
+let funlist = [{|List.append|};{|true|};{|List.cons|};{|my_subset2|};{|my_subset|}];;
+
+Imandra_discover_bridge.User_level.discover ~condition:"my_condition" ~show_generated_code:true ~verbose:true ~iterations:1i db funlist;;

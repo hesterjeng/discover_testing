@@ -1,0 +1,77 @@
+
+#redef;;
+
+type nat =
+  | Z
+  | S of nat;;
+
+let one = S Z;;
+
+let succ x = S x;;
+
+let rec add x y =
+  match x,y with
+  | m,Z -> m
+  | m,S(k) -> S(add m k)
+
+let pred n =
+  match n with
+  | S k -> k
+  | Z -> Z ;;
+
+let rec sub m n =
+  match m,n with
+  | m,Z -> m
+  | m,S k -> pred (sub m k);;
+
+let rec mul x y =
+  match x,y with
+  | m, Z -> Z
+  | m, S(k) -> add (mul m k) m;;
+
+let rec rem a b =
+  match a,b with
+  | Z,n -> Z
+  | S k, n -> mul (S (rem k n)) (if (S (rem k n) = n) then Z else one) ;;
+
+let rec quo a b =
+  match a, b with
+  | Z,b -> Z
+  | S k, n -> add (quo k n) (sub (one) (if (S (rem k n) = n) then Z else one));;
+
+let rec lt x y =
+match x,y with
+| Z,Z -> false
+| Z, S k -> true
+| S k, Z -> false
+| S k1, S k2 -> lt k1 k2;;
+
+let le x y = lt x y || x = y;;
+
+let gt x y = not(lt x y);;
+
+let ge x y = not(le x y);;
+
+#max_induct 1;;
+lemma add_z = fun x -> (add Z x) = x [@dt] [@@auto] [@@rw];;
+lemma add_one = (add one Z) = one [@kb] [@@auto] [@@rw];;
+lemma rem_z = fun x -> (rem Z x) = Z [@dt] [@@auto] [@@rw];;
+lemma rem_z2 = fun x -> (rem x Z) = x [@dt] [@@auto] [@@rw];;
+lemma rem_one = fun x -> (rem x one) = Z [@dt] [@@auto] [@@rw];;
+(* fun x -> (rem x x) = Z [@dt] *)
+(* lemma rem_remx = fun y x -> (rem (rem x y) x) = Z [@dt] [@@rw] [@@auto];; *)
+lemma rem_one_add = fun x -> (rem one (add x x)) = one [@dt] [@@rw] [@@auto];;
+(* lemma rem_x_addxx = fun x -> (rem x (add x x)) = x [@dt] [@@rw] [@@auto];; *)
+(* lemma rem_x_add_1x = fun x -> (rem x (add one x)) = x [@dt] [@@rw] [@@auto];; *)
+lemma add_z2 = fun x -> add x Z = x [@@rw] [@@auto];;
+lemma add_z22 = fun x y -> y = Z ==> add y x = x [@@rw] [@@auto];;
+lemma add_comm = fun x y -> (add y x) = (add x y) [@dt] [@@rw] [@@auto] [@@permutative];;
+
+(* verify (fun x -> rem x x = Z ==> rem x (S x) = Z);;
+   lemma remxx2 x = rem x x = Z ==> rem x (S x) = Z [@@auto];; *)
+(* lemma remxx x = rem x x = Z [@@induct functional mul];; *)
+
+(* #require "imandra-discover-bridge";;
+   let funlist = ["one";"add";"succ";"rem";"Z"];;
+
+   Imandra_discover_bridge.User_level.discover ~verbose:true ~iterations:2i db funlist;; *)

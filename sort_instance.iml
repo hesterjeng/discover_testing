@@ -32,14 +32,14 @@ module Sort = struct
     is_sorted ((insert_sort x) [@trigger])
   [@@auto] [@@rw] [@@fc]
 
-end
+end;;
 
 lemma sorted_head_elim x xs =
   Sort.is_sorted (x :: xs) =
    match xs with
    | [] -> true
    | y::ys -> x <= y && Sort.is_sorted xs
-[@@induct_term Sort.is_sorted xs] [@@rw]
+[@@induct_term Sort.is_sorted xs] [@@rw];;
 
 lemma leq_sorted_head x xs i =
   Sort.is_sorted xs && x <= List.hd xs
@@ -47,17 +47,17 @@ lemma leq_sorted_head x xs i =
   match List.nth i xs with
   | Some a -> x <= a
   | None -> true
-[@@auto] [@@rw]
+[@@auto] [@@rw];;
 
 lemma nth_pos_nonempty xs =
   xs <> [] ==> (List.length xs) [@trigger] >= 1
-[@@auto] [@@rw] [@@fc]
+[@@auto] [@@rw] [@@fc];;
 
 lemma nth_some_in_bounds xs i =
   match List.nth i xs with
   | Some _ -> i >= 0 && i <= List.length xs - 1
   | None -> true
-[@@auto] [@@rw] [@@fc]
+[@@auto] [@@rw] [@@fc];;
 
 lemma is_sorted_index_projection x i j =
   Sort.is_sorted x
@@ -66,10 +66,10 @@ lemma is_sorted_index_projection x i j =
   | Some a, Some b ->
     ((a <= b) [@trigger]) <== (i <= j)
   | _ -> true
-[@@auto] [@@rw] [@@fc]
+[@@auto] [@@rw] [@@fc];;
 
-[@@@disable Sort.insert_sort]
-[@@@disable List.nth]
+(* [@@@disable Sort.insert_sort] *)
+(* [@@@disable List.nth] *)
 
 (* Now, we can use List.nth nicely and get questions about the <=
    relationship of any i-th and j-th elements answered by projecting
@@ -79,22 +79,22 @@ lemma is_sorted_index_projection x i j =
    regardless of the number of elements.
  *)
 
-verify (fun xs ->
-  let xs = Sort.insert_sort xs in
-  match List.nth 0 xs, List.nth 1 xs, List.nth 2 xs, List.nth 3 xs with
-  | (Some a, Some b, Some c, Some d) ->
-    a <= b && b <= c && c <= d
-  | _ -> true
-) [@@auto]
+(* verify (fun xs -> *)
+(*   let xs = Sort.insert_sort xs in *)
+(*   match List.nth 0 xs, List.nth 1 xs, List.nth 2 xs, List.nth 3 xs with *)
+(*   | (Some a, Some b, Some c, Some d) -> *)
+(*     a <= b && b <= c && c <= d *)
+(*   | _ -> true *)
+(* ) [@@auto] *)
 
-verify (fun xs ->
-  let xs = Sort.insert_sort xs in
-  match List.nth 0 xs, List.nth 1 xs, List.nth 2 xs, List.nth 3 xs,
-        List.nth 4 xs, List.nth 5 xs, List.nth 6 xs, List.nth 7 xs with
-  | (Some a, Some b, Some c, Some d, Some e, Some f, Some g, Some h) ->
-    a <= b && b <= c && c <= d && d <= e && e <= f && f <= g && g <= h
-  | _ -> true
-) [@@auto]
+(* verify (fun xs -> *)
+(*   let xs = Sort.insert_sort xs in *)
+(*   match List.nth 0 xs, List.nth 1 xs, List.nth 2 xs, List.nth 3 xs, *)
+(*         List.nth 4 xs, List.nth 5 xs, List.nth 6 xs, List.nth 7 xs with *)
+(*   | (Some a, Some b, Some c, Some d, Some e, Some f, Some g, Some h) -> *)
+(*     a <= b && b <= c && c <= d && d <= e && e <= f && f <= g && g <= h *)
+(*   | _ -> true *)
+(* ) [@@auto] *)
 
 (* Kostya's particular 3-tuple example *)
 
@@ -102,16 +102,15 @@ let f (x,y,z) =
   let xs = Sort.insert_sort [x;y;z] in
   match List.nth 0 xs, List.nth 1 xs, List.nth 2 xs with
   | Some a, Some b, Some c -> (a,b,c)
-  | _ -> (0,0,0)
+  | _ -> (0,0,0);;
 
-verify (fun (a1, a2, a3) ->
-  let b1, b2, b3 = f (a1, a2, a3) in
-  b1 <= b2 && b2 <= b3
-) [@@auto]
+(* verify (fun (a1, a2, a3) -> *)
+(*   let b1, b2, b3 = f (a1, a2, a3) in *)
+(*   b1 <= b2 && b2 <= b3 *)
+(* ) [@@auto] *)
 
 #require "imandra-discover-bridge";;
-Imandra_discover_bridge.Top.init ();;
 (* let funlist = [{|List.append|};{|true|};{|List.cons|};{|subset|};];; *)
 let funlist = ["true";"Sort.insert";{|Sort.is_sorted|};{|Sort.insert_sort|};];;
 
-Imandra_discover_bridge.User_level.discover ~condition:"Sort.is_sorted" ~rewrite_schemas:false ~verbose:true db funlist;;
+Imandra_discover_bridge.User_level.discover ~condition:"Sort.is_sorted" db funlist;;

@@ -1,0 +1,8 @@
+
+#require "imandra-discover-bridge"
+type bintree = Final_node of int | Node of int * bintree * bintree;;
+
+let lhs_split n = n/2;;
+let rhs_split n = n - lhs_split n;;
+
+Imandra_discover_bridge.User_level.discover db ~iterations:2i ["+";"lhs_split";"rhs_split"];;

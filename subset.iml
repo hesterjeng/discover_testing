@@ -7,11 +7,9 @@ let rec subset l1 l2 = match l1 with
 let l1_subset_l2 l1 l2 = subset l1 l2;;
 
 #require "imandra-discover-bridge";;
-Imandra_discover_bridge.Top.init ();;
-(* let funlist = [{|true|};{|(&&)|};{|List.cons|}; {|List.append|};{|subset|};];; *)
 let funlist = [{|List.append|};{|true|};{|List.cons|};{|subset|};];;
-(* let funlist = [{|List.cons|}; {|subset|};];; *)
 
-(* Imandra_discover_bridge.User_level.discover {|test|} ~subsumed:true ~kb_completion:false ~num_random_checks:100i ~verbose:true db funlist;; *)
-Imandra_discover_bridge.User_level.discover {|test|} ~condition:"l1_subset_l2" ~rewrite_schemas:false ~verbose:true db funlist;;
-(* Imandra_discover_bridge.User_level.discover {|test|} ~num_random_checks:100i ~subsumed:true ~verbose:true db funlist;; *)
+(* Imandra_discover_bridge.User_level.discover ~imandra_instances:5i ~condition:"l1_subset_l2" ~show_generated_code:true ~verbose:true ~iterations:3i db funlist;; *)
+(* Imandra_discover_bridge.User_level.discover ~condition:"l1_subset_l2" ~show_generated_code:true ~verbose:true ~iterations:3i db funlist;; *)
+Imandra_discover_bridge.User_level.discover ~condition:"l1_subset_l2" ~iterations:3i db funlist;;
+(* Imandra_discover_bridge.User_level.discover ~iterations:2i db funlist;; *)

@@ -154,9 +154,8 @@ let b n = a (sub1 n) n;;
 let my_condition x = lessp (S Z) x;;
 
 #require "imandra-discover-bridge";;
-Imandra_discover_bridge.Top.init ();;
 let funlist = ["zero";"one";"plus_one";"sub1";"b";"a";];;
-#program;;
-Imandra_discover_bridge.User_level.discover {|test|} ~num_random_checks:50i ~verbose:true ~condition:"my_condition" db funlist;;
+
+Imandra_discover_bridge.User_level.discover ~condition:"my_condition" db funlist;;
 
 (* theorem big_kahuna x = lessp (S Z) x ==> prime (b x) [@@auto];; *)
